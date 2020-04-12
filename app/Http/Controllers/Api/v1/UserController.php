@@ -35,9 +35,9 @@ class UserController extends ResponseController
            return $this->sendError($error, 401);
        }
        $user = $request->user();
-       $success['token'] =  $user->createToken('token')->accessToken;
+//       $success['token'] =  $user->createToken('token')->accessToken;
 
-       $success['access_token'] =  $user->createToken('EasyGo')->accessToken;
+       $success['access_token'] =  $user->createToken('blackboard')->accessToken;
        $success['token'] =  md5($success['access_token']).sha1($success['access_token']);
        $success['token_type'] = "user";
        $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
@@ -314,4 +314,17 @@ class UserController extends ResponseController
 //      return response()->json($success, $this-> successStatus);
     }
 
+    public function getUser(Request $request)
+    {
+      //$id = $request->user()->id;
+      $user = $request->user();
+//      $user = Auth::user();
+      if($user){
+          return $this->sendResponse($user);
+      }
+      else{
+          $error = "user not found";
+          return $this->sendResponse($error);
+      }
+    }
 }
