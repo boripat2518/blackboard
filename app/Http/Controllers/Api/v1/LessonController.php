@@ -6,9 +6,9 @@ use App\Http\Controllers\Api\ResponseController as ResponseController;
 use App\User;
 use Illuminate\Support\Facades\Auth;
 use Validator;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Models\Lesson;
+use App\Http\Models\Video;
 use Illuminate\Support\Facades\Storage;
 // use App\Http\Models\v1\Facebook;
 // use App\Http\Models\v1\Location;
@@ -39,17 +39,18 @@ class LessonController extends ResponseController {
       $imgCover=$request->file('cover');
       $imgSurname=mb_strtolower($imgCover->getClientOriginalExtension());
       $imgName=sprintf("%05d_%s.%s",
-                  $aUser->id, date('YmdHis'),
-                  $imgSurname);
+        $aUser->id,
+        date('YmdHis'),
+        $imgSurname);
       $destCover=sprintf("%s%s",$destPath,$imgName);
       $aReturn['destCover']=$destCover;
 //      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
       if ($request->file('cover')->storeAs('public'.$destPath,$imgName)) {
-        $upload['cover']=url(sprintf("storage%s%s",$destPath,$imgName));
+        $upload['old_cover']=url(sprintf("storage%s%s",$destPath,$imgName));
         $orgImageFile=sprintf("public%s%s",$destPath,$imgName);
       }
     }
-    $myData=array(
+    $myDataLesson=array(
       "title" => $aInput['name'],
       "cat_id"=> $aInput['category'],
       "type" => $aInput['type'],
@@ -58,10 +59,10 @@ class LessonController extends ResponseController {
       "cover" => sprintf("storage%s%s",$destPath,$imgName),
       "room_id" => Auth::user()->id
     );
-    if (isset($aInput['tag'])) $myData['tag']=$aInput['tag'];
-    if (isset($aInput['detail'])) $myData['note']=$aInput['detail'];
+    if (isset($aInput['tag'])) $myDataLesson['tag']=$aInput['tag'];
+    if (isset($aInput['detail'])) $myDataLesson['note']=$aInput['detail'];
 
-    $myLesson = Lesson::create($myData);
+    $myLesson = Lesson::create($myDataLesson);
     if (! $myLesson) {
       // Delete Cover Image
       Storage::delete(sprintf('public%s%s',$destPath,$imgName));
@@ -71,31 +72,42 @@ class LessonController extends ResponseController {
       }
       return $this->sendError('Cannot Add Lesson');
     }
+
     $newPath='/lessons/'.$myLesson->id.'/';
     $newImageName=sprintf("cover.%s",$imgSurname);
     $newImageFile=sprintf("public%s%s",$newPath,$newImageName);
     Storage::move($orgImageFile,$newImageFile);
-
     $myLesson->cover=sprintf("storage%s%s",$newPath,$newImageName);
+    $upload['new_cover']=url($myLesson->cover);
     $myLesson->save();
 
-/*
     if ($request->file('lesson')) {
       $vdoLesson=$request->file('lesson');
-      $vdoName=sprintf("%05d_%s.%s",
-                  $aUser->id, date('YmdHis'),
-                  mb_strtolower($vdoLesson->getClientOriginalExtension()));
-      $destFile=sprintf("%s%s",$destPath,$vdoName);
+      $vdoName=sprintf("%s.%s",
+        date('YmdHis'),
+        mb_strtolower($vdoLesson->getClientOriginalExtension()));
+      $destFile=sprintf("%s%s",$newPath,$vdoName);
       $aReturn['destVideo']=$destFile;
 //      if ($request->file('lesson')->storeAs($destPath,$vdoLesson)) {
-      if ($request->file('lesson')->storeAs('public'.$destPath,$vdoName)) {
-        $upload['lesson']=url(sprintf("storage%s%s",$destPath,$vdoName));
+      if ($request->file('lesson')->storeAs('public'.$newPath,$vdoName)) {
+        $myDataVideo = array(
+          "lesson_id" => $myLesson->id,
+          "link" => sprintf("storage%s%s",$newPath,$vdoName)
+        );
+        $upload['lesson']=url($myDataVideo['link']);
+// Video DB
+        $myVideo = Video::create($myDataVideo);
+        if (! $myVideo) {
+          Storage::delete(sprintf('public%s%s',$newPath,$vdoName));
+          Storage::delete(sprintf('public%s%s',$newPath,$newImageName));
+          $myLesson->delete();
+          return $this->sendError('Cannot Add Video Lesson');
+        }
       }
     }
-*/
+
+    $success['upload']=$upload;
     $success['return']=$aReturn;
-
-
 
     return $this->sendResponse($success);
   }
