@@ -17,6 +17,7 @@ class LessonController extends ResponseController {
 
   public function create(Request $request){
     $aInput=$request->all();
+
     $validator=Validator::make($request->all(), [
       'name' => 'required',
       'category' => 'required',
@@ -70,7 +71,8 @@ class LessonController extends ResponseController {
       if ($request->file('lesson')) {
         Storage::delete($request->file('lesson'));
       }
-      return $this->sendError('Cannot Add Lesson');
+      $result=array("result"=>0,"message"=>'Cannot Add Lesson');
+      return $this->sendError($result);
     }
 
     $newPath='/lessons/'.$myLesson->id.'/';
@@ -101,15 +103,15 @@ class LessonController extends ResponseController {
           Storage::delete(sprintf('public%s%s',$newPath,$vdoName));
           Storage::delete(sprintf('public%s%s',$newPath,$newImageName));
           $myLesson->delete();
-          return $this->sendError('Cannot Add Video Lesson');
+          $result=array("result"=>0,"message"=>'Cannot Add Video Lesson');
+          return $this->sendError($result);
         }
       }
     }
 
-    $success['upload']=$upload;
-    $success['return']=$aReturn;
+    $result=array("result"=>1,"message"=>"Successful");
 
-    return $this->sendResponse($success);
+    return $this->sendResponse($result);
   }
 
 }
