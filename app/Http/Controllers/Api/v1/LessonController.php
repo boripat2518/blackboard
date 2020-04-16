@@ -114,4 +114,55 @@ class LessonController extends ResponseController {
     return $this->sendResponse($result);
   }
 
+  public function show(Request $request,$id=0){
+    $return=array("lesson"=>null,"vdo_list"=>null);
+    $lesson=Lesson::findorFail($id);
+    if (! $lesson) {
+      return $this->sendError("Failed");
+    }
+    $videos=Video::where('lesson_id','=',$id)->get();
+    if (! $videos) {
+      return $this->sendError("Failed");
+    }
+    $return['lesson']=array(
+      "id" => $lesson->id,
+      "cat_id" => $lesson->cat_id,
+      "type" => $lesson->type,
+      "title" => $lesson->title,
+      "desc" => $lesson->note,
+      "tag" => $lesson->tag,
+      "price" => floatval($lesson->price),
+      "net" => floatval($lesson->net),
+      "cover" => url($lesson->cover),
+      "room_id" => $lesson->room_id
+    );
+    foreach ($videos as $video) {
+      $return['vdo_list'][]=array(
+        "id" => $video->id,
+        "url" => url($video->link)
+      );
+    }
+
+    return $this->sendResponse($return);
+  }
+
+  public function update(Request $request,$id=0){
+    $aInput=$request->all();
+
+    $validator=Validator::make($request->all(), [
+      'name' => 'required',
+      'category' => 'required',
+      'type' => 'required',
+      'price' => 'required',
+      'net' => 'required',
+      'cover' => 'file|mimes:jpeg,png,jpg,gif|max:5120',
+      'lesson' => 'file|mimes:mp4,mpeg|max:51200'
+    ]);
+
+    if($validator->fails()){
+      return $this->sendError($validator->errors());
+    }
+    $return=array("result"=>1,"message"=>"Successful.");
+    return $this->sendResponse($return);
+  }
 }

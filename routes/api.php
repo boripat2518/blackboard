@@ -21,6 +21,7 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::get('/user', 'Api\v1\UserController@getUser');
   Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
+  Route::patch('/v1/lesson/{id}', 'Api\v1\LessonController@update')->name('api.lesson.update');
 
   Route::get('/v1/home/category', 'Api\v1\CategoryController@all')->name('api.category.list');
 
