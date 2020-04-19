@@ -3,10 +3,6 @@ namespace App\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController as ResponseController;
-use App\User;
-use Illuminate\Support\Facades\Auth;
-use Validator;
-use Illuminate\Support\Facades\DB;
 use App\Http\Models\Category;
 use Illuminate\Support\Facades\Storage;
 // use App\Http\Models\v1\Facebook;

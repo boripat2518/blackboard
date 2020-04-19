@@ -148,6 +148,7 @@ class LessonController extends ResponseController {
 
   public function update(Request $request,$id=0){
     $aInput=$request->all();
+    $myLesson=Lesson::findorFail($id);
 
     $validator=Validator::make($request->all(), [
       'name' => 'required',
@@ -162,6 +163,39 @@ class LessonController extends ResponseController {
     if($validator->fails()){
       return $this->sendError($validator->errors());
     }
+
+    $destPath='/lessons/'.$myLesson->id.'/';
+    if ($request->file('cover')) {
+      $imgCover=$request->file('cover');
+      $imgSurname=mb_strtolower($imgCover->getClientOriginalExtension());
+      $imgName=sprintf("cover.%s",$imgSurname);
+      $destCover=sprintf("%s%s",$destPath,$imgName);
+//      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
+      if ($request->file('cover')->storeAs('public'.$destPath,$imgName)) {
+        $myLesson->cover=sprintf("storage%s%s",$destPath,$imgName);
+      }
+    }
+
+    if ($request->file('lesson')) {
+      $vdoLesson=$request->file('lesson');
+      $vdoSurname=mb_strtolower($vdoLesson->getClientOriginalExtension());
+      $vdoName=sprintf("%s.%s",date('YmdHis'),$vdoSurname);
+      $destLesson=sprintf("%s%s",$destPath,$imgName);
+//      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
+      if ($request->file('lesson')->storeAs('public'.$destPath,$vdoName)) {
+        $myLesson->lesson=sprintf("storage%s%s",$destPath,$vdoName);
+      }
+    }
+    if ($myLesson->title != $aInput['name']) $myLesson->title = $aInput['name'];
+    if ($myLesson->cat_id != $aInput['category']) $myLesson->cat_id = $aInput['category'];
+    if ($myLesson->type != $aInput['type']) $myLesson->type = $aInput['type'];
+    if ($myLesson->price != $aInput['price']) $myLesson->price = $aInput['price'];
+    if ($myLesson->net != $aInput['net']) $myLesson->net = $aInput['net'];
+    if ($myLesson->note != $aInput['detail']) $myLesson->note = $aInput['detail'];
+    if ($myLesson->tag != $aInput['tag']) $myLesson->tag = $aInput['tag'];
+
+    $myLesson->save();
+
     $return=array("result"=>1,"message"=>"Successful.");
     return $this->sendResponse($return);
   }

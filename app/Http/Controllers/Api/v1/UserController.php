@@ -56,25 +56,28 @@ class UserController extends ResponseController
     public function register(Request $request)
     {
       $validator = Validator::make($request->all(), [
+        'name'  => 'required|string|max:255',
         'first_name'  => 'required|string|max:255',
         'last_name'   => 'required|string|max:255',
         'email'       => 'required|string|email|max:255|unique:users',
         'password'    => 'required|string|min:6',
-        'password_confirmation' => 'required|string|same:password',
+        'tel'   => 'required|string|max:255',
       ]);
       if ($validator->fails()) {
-//        return response()->json(['error'=>$validator->errors()], 401);
         return response()->json(['message'=>"Register fail."], 400);
+//        return response()->json(['message'=>$validator->errors()], 401);
+//        $error=array('message'=>"Register fail.");
+//        return $this->sendError($error, 400);
       }
       $input = $request->all();
-      $input['name']      = $input['first_name']." ".$input['last_name'];
       $input['password']  = bcrypt($input['password']);
+      $input['phone'] = $input['tel'];
       $user = User::create($input);
       $success['access_token'] =  $user->createToken('EasyGo')->accessToken;
       $success['token_type'] = "user";
       $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
-      return response()->json($success, $this-> successStatus);
+      return $this->sendResponse($success);
     }
 /**
      * details api
@@ -88,23 +91,37 @@ class UserController extends ResponseController
     }
 
     public function user(Request $request) {
-      $aData=array( "first_name"=>'',
-                    "last_name"=>'',
-                    "point"=>0,
-                    "email"=>'',
-                    "phone"=>'',
-                    "province"=>'',
-                    "image_url"=>'',
-                  );
+
       $user = Auth::user();
-      $aData['first_name']  = $user->first_name;
-      $aData['last_name']   = $user->last_name;
-      $aData['point']       = 0;
-      $aData['email']       = $user->email;
-      $aData['phone']       = (is_null($user->phone))?"":$user->phone;
-      $aData['province']    = $user->location;
-      $aData['image_url']   = ($user->provider=='email')?$user->photo_url:$user->provider_photo;
-      return response()->json($aData, 200);
+      $room = DB::table('room_infos')->where('user_id','=',$user->id)->first();
+
+      $follow=DB::table('room_follows')->where('user_id','=',$user->id)->count();
+
+      $follower=0;
+      $favorite=0;
+      if ( $room ) {
+        $follower=DB::table('room_follows')->where('room_id','=',$room->id)->count();
+        $favorite=DB::table('room_favorites')->where('room_id','=',$room->id)->count();
+      }
+      $avatar=url('storage/images/avatar.jpg');
+      if ($user->provider=='email') {
+        if (! is_null($user->photo_url)) {
+          $avatar=url($user->photo_url);
+        }
+      } else {
+        $avatar=$user->provider_photo;
+      }
+      $success['user']=array(
+        "id"        => $user->id,
+        "avatar"    => $avatar,
+        "name"      => $user->name,
+        "follower"  => $follower
+      );
+      $success['favorite']=$favorite;
+      $success['follow']=$follow;
+      $success['language']="th";
+      return $this->sendResponse($success);
+
   /*
       if(Auth::attempt(['remember_token' => request('token')])){
         $user = Auth::user();
