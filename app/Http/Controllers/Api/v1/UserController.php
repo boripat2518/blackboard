@@ -101,7 +101,7 @@ class UserController extends ResponseController
       $favorite=0;
       if ( $room ) {
         $follower=DB::table('room_follows')->where('room_id','=',$room->id)->count();
-        $favorite=DB::table('room_favorites')->where('room_id','=',$room->id)->count();
+        $favorite=DB::table('lesson_favorites')->where('room_id','=',$room->id)->count();
       }
       $avatar=url('storage/images/avatar.jpg');
       if ($user->provider=='email') {
@@ -115,7 +115,8 @@ class UserController extends ResponseController
         "id"        => $user->id,
         "avatar"    => $avatar,
         "name"      => $user->name,
-        "follower"  => $follower
+        "follower"  => $follower,
+        "room"      => ($room)?$room->id:0
       );
       $success['favorite']=$favorite;
       $success['follow']=$follow;

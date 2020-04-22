@@ -25,6 +25,12 @@ class RoomController extends ResponseController {
       return $this->sendError($validator->errors());
     }
 
+    $myRoom=Room::where('user_id','=',$user->id)->first();
+    if ($myRoom) {
+      $result=array("result"=>0,"message"=>'This user already have thier room.');
+      return $this->sendError($result);
+    }
+
     $destPath='/rooms/tmp/';
     if ($request->file('cover')) {
       $imgCover=$request->file('cover');
