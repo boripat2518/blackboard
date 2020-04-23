@@ -16,11 +16,11 @@ class ResponseController extends Controller
     }
 
 
-    public function sendError($error, $code = 404)
+    public function sendError($response, $code = 401)
     {
-    	$response = [
-            'error' => $error,
-        ];
+//    	$response = [
+//            'error' => $error,
+//        ];
         return response()->json($response, $code);
     }
 }

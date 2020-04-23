@@ -1,19 +1,19 @@
 <?php
-namespace App\Http\Controllers\Api\v1;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Api\ResponseController as ResponseController;
-use App\User;
-use Illuminate\Support\Facades\Auth;
-use Validator;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-// use App\Http\Models\v1\Facebook;
-// use App\Http\Models\v1\Location;
+  namespace App\Http\Controllers\Api\v1;
+  use Illuminate\Http\Request;
+  use App\Http\Controllers\Api\ResponseController as ResponseController;
+  use App\User;
+  use Illuminate\Support\Facades\Auth;
+  use Validator;
+  use Carbon\Carbon;
+  use Illuminate\Support\Facades\DB;
+  // use App\Http\Models\v1\Facebook;
+  // use App\Http\Models\v1\Location;
 
-class UserController extends ResponseController
-{
-  public $successStatus = 200;
-/**
+  class UserController extends ResponseController {
+
+    public $successStatus = 200;
+    /**
      * login api
      *
      * @return \Illuminate\Http\Response
@@ -26,27 +26,29 @@ class UserController extends ResponseController
       ]);
 
       if($validator->fails()){
-           return $this->sendError($validator->errors());
-       }
+        $result=array("error"=>$validator->errors());
+        return $this->sendError($result);
+      }
 
-       $credentials = request(['email', 'password']);
-       if(!Auth::attempt($credentials)){
-           $error = "Unauthorized";
-           return $this->sendError($error, 401);
-       }
-       $user = $request->user();
-//       $success['token'] =  $user->createToken('token')->accessToken;
+      $credentials = request(['email', 'password']);
+      if(!Auth::attempt($credentials)){
+        $user= User::where('email','=',$request->get('email'))->first();
+        $error['message']=($user)?"Password is not correct.":"Not found email.";
+        return $this->sendError($error);
+      }
+      $user = $request->user();
+      //       $success['token'] =  $user->createToken('token')->accessToken;
 
-       $success['access_token'] =  $user->createToken('blackboard')->accessToken;
-       $success['token'] =  md5($success['access_token']).sha1($success['access_token']);
-       $success['token_type'] = "user";
-       $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $success['access_token'] =  $user->createToken('blackboard')->accessToken;
+      $success['token'] =  md5($success['access_token']).sha1($success['access_token']);
+      $success['token_type'] = "user";
+      $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
 
-       $user->api_token=$success['token'];
-       $user->save();
-       unset($success['token']);
+      $user->api_token=$success['token'];
+      $user->save();
+      unset($success['token']);
 
-       return $this->sendResponse($success);
+      return $this->sendResponse($success);
     }
 /**
      * Register api

@@ -22,12 +22,13 @@ class RoomController extends ResponseController {
     ]);
 
     if($validator->fails()){
-      return $this->sendError($validator->errors());
+      $result=array("error"=>$validator->errors());
+      return $this->sendError($result);
     }
 
     $myRoom=Room::where('user_id','=',$user->id)->first();
     if ($myRoom) {
-      $result=array("result"=>0,"message"=>'This user already have thier room.');
+      $result=array("message"=>'This user already have thier room.');
       return $this->sendError($result);
     }
 
@@ -41,7 +42,7 @@ class RoomController extends ResponseController {
         $imgCoverFile=sprintf("storage%s%s",$destPath,$imgName);
         $orgImageFile=sprintf("public%s%s",$destPath,$imgName);
       } else {
-        $result=array("result"=>0,"message"=>'Cannot Add Room');
+        $result=array("message"=>'Cannot Add Room');
         return $this->sendError($result);
       }
     }
