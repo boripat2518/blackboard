@@ -57,7 +57,8 @@
      */
     public function register(Request $request)
     {
-      $validator = Validator::make($request->all(), [
+        $input=$request->json()->all();
+/*      $validator = Validator::make($request->json()->all(), [
         'name'  => 'required|string|max:255',
         'first_name'  => 'required|string|max:255',
         'last_name'   => 'required|string|max:255',
@@ -66,18 +67,42 @@
         'tel'   => 'required|string|max:255',
       ]);
       if ($validator->fails()) {
-        return response()->json(['message'=>"Register fail."], 400);
-//        return response()->json(['message'=>$validator->errors()], 401);
+//        return response()->json(['message'=>"Register fail."], 400);
+        $error=array(
+          "status"=>false,
+          "message" => "",
+          "code"=>0,
+          "data"=>$validator->errors()
+        );
+        return $this->sendResponse($error);
+//        return response()->json(['message'=>$validator->errors()], 400);
 //        $error=array('message'=>"Register fail.");
 //        return $this->sendError($error, 400);
       }
-      $input = $request->all();
+*/
+      $input = $request->json()->all();
+      $user=User::where('email','=',$input['email'])->first();
+      if ($user) {
+        $error=array(
+          "status"=>false,
+          "message" => "The email has already been taken.",
+          "code"=>0,
+          "data"=>null
+        );
+        return $this->sendResponse($error);
+      }
       $input['password']  = bcrypt($input['password']);
       $input['phone'] = $input['tel'];
       $user = User::create($input);
-      $success['access_token'] =  $user->createToken('EasyGo')->accessToken;
-      $success['token_type'] = "user";
-      $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $success=array(
+        "status"=>true,
+        "message" => "",
+        "code"=>0,
+        "data"=>null,
+      );
+      $success['data']['access_token'] =  $user->createToken('EasyGo')->accessToken;
+      $success['data']['token_type'] = "user";
+      $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
       return $this->sendResponse($success);
     }
