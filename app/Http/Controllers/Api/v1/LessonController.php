@@ -238,9 +238,17 @@ class LessonController extends ResponseController {
     if (! $lessons ) {
       $aResult['message'] = "Can not find any lesson.";
     } else {
-      $pageLesson=$lessons->get();
-//      print_r($lessons);
-      $aResult['data']=$pageLesson;
+      $pageLesson=$lessons->toArray();
+//      print_r($pageLesson);
+      $myData=array("pagination"=>array(
+          "page"  => intVal($pageLesson['current_page']),
+          "total"   => intVal($pageLesson['total']),
+          "perpage" => intVal($pageLesson['per_page']),
+          "offset"  => intVal($pageLesson['from']),
+        ),
+        "result"=>$pageLesson['data']);
+      $aResult['data']=$myData;
+      $aResult['lessons']=$pageLesson;
     }
     return $this->sendResponse($aResult);
   }
