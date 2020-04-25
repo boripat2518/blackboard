@@ -18,9 +18,12 @@ Route::group(['middleware' => 'guest:api'], function(){
   Route::post('/v1/register', 'Api\v1\UserController@register')->name('api.register');
 
   Route::get('/v1/home/category', 'Api\v1\CategoryController@all')->name('api.category.list');
+
+  Route::get('/v1/lesson/category', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
+
   Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
-  Route::get('/v1/category/lesson/{id}', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
-  Route::get('/v1/category/video/', 'Api\v1\LessonController@searchVideo')->name('api.category.video.search');
+
+//  Route::get('/v1/lesson/search', 'Api\v1\LessonController@searchVideo')->name('api.category.video.search');
 });
 
 Route::group(['middleware' => 'auth:api'], function(){

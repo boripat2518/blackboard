@@ -210,31 +210,37 @@ class LessonController extends ResponseController {
     return $this->sendResponse($return);
   }
 
-  public function searchByCategory(Request $request,$id=0){
-    $aResult=array(
+  public function searchByCategory(Request $request){
+    $input = $request->all();
+    $aResult = array(
       "status"  => false,
       "message" => null,
       "code"    => 0,
       "data"    => null
     );
     // Find category
-    $category = Category::where('id','=',$id)->first();
+    $category = Category::where('id','=',$input['cat'])->first();
 
     if (! $category) {
       $aResult['message'] = "Can not found category";
-      return $this->sendError($aResult,401);
+      return $this->sendResponse($aResult);
     }
 
-    $lessons = Lesson::where('cat_id','=',$id)
+    $page=(isset($input['page']))?$input['page']:0;
+    $perpage=(isset($input['perpage']))?$input['perpage']:10;
+
+    $lessons = Lesson::where('cat_id','=',$input['cat'])
       ->orderBy('type')
       ->orderBy('title')
-      ->get();
+      ->paginate($perpage);
 
     $aResult["status"] = true;
     if (! $lessons ) {
       $aResult['message'] = "Can not find any lesson.";
     } else {
-      $aResult['data']=$lessons;
+      $pageLesson=$lessons->get();
+//      print_r($lessons);
+      $aResult['data']=$pageLesson;
     }
     return $this->sendResponse($aResult);
   }
@@ -289,7 +295,24 @@ class LessonController extends ResponseController {
     if (! $lessons ) {
       $aResult['message'] = "Can not find any lesson.";
     } else {
-      $aResult['data']=$lessons;
+      $myDatas=array();
+      foreach ($lessons as $lesson) {
+        $myDatas[]=array(
+          "id" => $lesson->id,
+//          "cat_id" => $lesson->cat_id,
+//          "room_id" => $lesson->room_id,
+          "title" => $lesson->title,
+          "type" => $lesson->type,
+          "tag" => $lesson->tag,
+          "cover" => url($lesson->cover),
+          "price" => floatval($lesson->price),
+          "net" => floatval($lesson->net),
+//          "rate" => 0,
+//          "favorite" => 0,
+          "count" => 0
+        );
+      }
+      $aResult['data']=$myDatas;
     }
     return $this->sendResponse($aResult);
   }
