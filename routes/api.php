@@ -20,6 +20,7 @@ Route::group(['middleware' => 'guest:api'], function(){
   Route::get('/v1/home/category', 'Api\v1\CategoryController@all')->name('api.category.list');
   Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
   Route::get('/v1/category/lesson/{id}', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
+  Route::get('/v1/category/video/', 'Api\v1\LessonController@searchVideo')->name('api.category.video.search');
 });
 
 Route::group(['middleware' => 'auth:api'], function(){
@@ -28,6 +29,7 @@ Route::group(['middleware' => 'auth:api'], function(){
 
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
   Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
+  Route::get('/v1/my/lesson', 'Api\v1\LessonController@myLesson')->name('api.lesson.my');
 
   Route::post('/v1/shop/create', 'Api\v1\RoomController@create')->name('api.room.create');
 });

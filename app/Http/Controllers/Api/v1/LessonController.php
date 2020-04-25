@@ -239,4 +239,58 @@ class LessonController extends ResponseController {
     return $this->sendResponse($aResult);
   }
 
+  public function listByCategory(Request $request){
+    $input=$request->all();
+    $aResult=array(
+      "status"  => false,
+      "message" => null,
+      "code"    => 0,
+      "data"    => null
+    );
+    $category = Category::where('id','=',$input['cat'])->first();
+    if (! $category) {
+      $aResult['message'] = "Can not found category";
+      return $this->sendError($aResult,401);
+    }
+    $page=(isset($input['page']))?$input['page']:0;
+    $perpage=(isset($input['pp']))?$input['pp']:10;
+    $lessons = Lesson::where('cat_id','=',$id)
+      ->orderBy('type')
+      ->orderBy('title')
+      ->paginate($perpage);
+
+    return $this->sendResponse($aResult);
+
+
+  }
+
+  public function myLesson(Request $request){
+    $aResult=array(
+      "status"  => false,
+      "message" => null,
+      "code"    => 0,
+      "data"    => null
+    );
+    // Find category
+    $user=Auth::user();
+    $myRoom = Room::where('user_id','=',$user->id)->first();
+
+    if (! $myRoom) {
+      $aResult['message'] = "You don't have any room.";
+      return $this->sendError($aResult,401);
+    }
+
+    $lessons = Lesson::where('room_id','=',$myRoom->id)
+      ->orderBy('type')
+      ->orderBy('title')
+      ->get();
+
+    $aResult["status"] = true;
+    if (! $lessons ) {
+      $aResult['message'] = "Can not find any lesson.";
+    } else {
+      $aResult['data']=$lessons;
+    }
+    return $this->sendResponse($aResult);
+  }
 }
