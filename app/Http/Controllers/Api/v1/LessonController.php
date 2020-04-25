@@ -7,7 +7,9 @@ use App\User;
 use Illuminate\Support\Facades\Auth;
 use Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Models\Room;
 use App\Http\Models\Lesson;
+use App\Http\Models\Category;
 use App\Http\Models\Video;
 use Illuminate\Support\Facades\Storage;
 // use App\Http\Models\v1\Facebook;
@@ -24,8 +26,8 @@ class LessonController extends ResponseController {
       'type' => 'required',
       'price' => 'required',
       'net' => 'required',
-      'cover' => 'file|mimes:jpeg,png,jpg,gif|max:5120',
-      'lesson' => 'file|mimes:mp4,mpeg|max:51200'
+      'cover' => 'required|file|mimes:jpeg,png,jpg,gif|max:5120',
+      'lesson' => 'required|file|mimes:mp4,mpeg|max:51200'
     ]);
 
     if($validator->fails()){
@@ -35,6 +37,13 @@ class LessonController extends ResponseController {
     $success=array();
     $success['request']=$request->all();
     $aUser = Auth::user();
+    $myRoom = Room::where('user_id','=',$aUser->id)->first();
+
+    if (! $myRoom) {
+      $error=array("message"=>"No room information.");
+      return $this->sendError($error);
+    }
+
     $destPath='/lessons/tmp/';
     if ($request->file('cover')) {
       $imgCover=$request->file('cover');
@@ -58,7 +67,7 @@ class LessonController extends ResponseController {
       "price" => $aInput['price'],
       "net" => $aInput['net'],
       "cover" => sprintf("storage%s%s",$destPath,$imgName),
-      "room_id" => Auth::user()->id
+      "room_id" => $myRoom->id
     );
     if (isset($aInput['tag'])) $myDataLesson['tag']=$aInput['tag'];
     if (isset($aInput['detail'])) $myDataLesson['note']=$aInput['detail'];
@@ -78,6 +87,7 @@ class LessonController extends ResponseController {
     $newPath='/lessons/'.$myLesson->id.'/';
     $newImageName=sprintf("cover.%s",$imgSurname);
     $newImageFile=sprintf("public%s%s",$newPath,$newImageName);
+    Storage::delete($newImageFile);
     Storage::move($orgImageFile,$newImageFile);
     $myLesson->cover=sprintf("storage%s%s",$newPath,$newImageName);
     $upload['new_cover']=url($myLesson->cover);
@@ -127,14 +137,14 @@ class LessonController extends ResponseController {
     $return['lesson']=array(
       "id" => $lesson->id,
       "cat_id" => $lesson->cat_id,
+      "room_id" => $lesson->room_id,
       "type" => $lesson->type,
       "title" => $lesson->title,
       "desc" => $lesson->note,
       "tag" => $lesson->tag,
       "price" => floatval($lesson->price),
       "net" => floatval($lesson->net),
-      "cover" => url($lesson->cover),
-      "room_id" => $lesson->room_id
+      "cover" => url($lesson->cover)
     );
     foreach ($videos as $video) {
       $return['vdo_list'][]=array(
@@ -157,7 +167,7 @@ class LessonController extends ResponseController {
       'price' => 'required',
       'net' => 'required',
       'cover' => 'file|mimes:jpeg,png,jpg,gif|max:5120',
-      'lesson' => 'file|mimes:mp4,mpeg|max:51200'
+      'lesson' => 'file|mimes:mp4,mpeg|max:512000'
     ]);
 
     if($validator->fails()){
@@ -199,4 +209,34 @@ class LessonController extends ResponseController {
     $return=array("result"=>1,"message"=>"Successful.");
     return $this->sendResponse($return);
   }
+
+  public function searchByCategory(Request $request,$id=0){
+    $aResult=array(
+      "status"  => false,
+      "message" => null,
+      "code"    => 0,
+      "data"    => null
+    );
+    // Find category
+    $category = Category::where('id','=',$id)->first();
+
+    if (! $category) {
+      $aResult['message'] = "Can not found category";
+      return $this->sendError($aResult,401);
+    }
+
+    $lessons = Lesson::where('cat_id','=',$id)
+      ->orderBy('type')
+      ->orderBy('title')
+      ->get();
+
+    $aResult["status"] = true;
+    if (! $lessons ) {
+      $aResult['message'] = "Can not find any lesson.";
+    } else {
+      $aResult['data']=$lessons;
+    }
+    return $this->sendResponse($aResult);
+  }
+
 }

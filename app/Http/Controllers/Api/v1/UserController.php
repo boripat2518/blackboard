@@ -57,29 +57,6 @@
      */
     public function register(Request $request)
     {
-        $input=$request->json()->all();
-/*      $validator = Validator::make($request->json()->all(), [
-        'name'  => 'required|string|max:255',
-        'first_name'  => 'required|string|max:255',
-        'last_name'   => 'required|string|max:255',
-        'email'       => 'required|string|email|max:255|unique:users',
-        'password'    => 'required|string|min:6',
-        'tel'   => 'required|string|max:255',
-      ]);
-      if ($validator->fails()) {
-//        return response()->json(['message'=>"Register fail."], 400);
-        $error=array(
-          "status"=>false,
-          "message" => "",
-          "code"=>0,
-          "data"=>$validator->errors()
-        );
-        return $this->sendResponse($error);
-//        return response()->json(['message'=>$validator->errors()], 400);
-//        $error=array('message'=>"Register fail.");
-//        return $this->sendError($error, 400);
-      }
-*/
       $input = $request->json()->all();
       $user=User::where('email','=',$input['email'])->first();
       if ($user) {

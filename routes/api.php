@@ -18,13 +18,14 @@ Route::group(['middleware' => 'guest:api'], function(){
   Route::post('/v1/register', 'Api\v1\UserController@register')->name('api.register');
 
   Route::get('/v1/home/category', 'Api\v1\CategoryController@all')->name('api.category.list');
+  Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
+  Route::get('/v1/category/lesson/{id}', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
 });
 
 Route::group(['middleware' => 'auth:api'], function(){
 //  Route::get('/user', 'Api\v1\UserController@getUser');
   Route::get('/v1/account/profile', 'Api\v1\UserController@user')->name('api.profile');
 
-  Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
   Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
 
