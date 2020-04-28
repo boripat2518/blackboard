@@ -219,6 +219,11 @@ class LessonController extends ResponseController {
       "data"    => null
     );
     // Find category
+    if (! isset($input['cat']) ) {
+      $aResult['message'] = "Can not found category";
+      return $this->sendResponse($aResult);
+    }
+
     $category = Category::where('id','=',$input['cat'])->first();
 
     if (! $category) {
@@ -234,21 +239,40 @@ class LessonController extends ResponseController {
       ->orderBy('title')
       ->paginate($perpage);
 
-    $aResult["status"] = true;
-    if (! $lessons ) {
+    if ($lessons->count() == 0 ) {
       $aResult['message'] = "Can not find any lesson.";
+      return $this->sendResponse($aResult);
     } else {
+      $aResult["status"] = true;
+      $aLesson=array();
       $pageLesson=$lessons->toArray();
 //      print_r($pageLesson);
-      $myData=array("pagination"=>array(
+      foreach($pageLesson['data'] as $myLesson) {
+        $aLesson[]=array(
+          "id" => $myLesson['id'],
+          "cat_id" => $myLesson['cat_id'],
+          "room_id" => $myLesson['room_id'],
+          "title" => $myLesson['title'],
+          "note" => $myLesson['note'],
+          "type" => $myLesson['type'],
+          "tag" => $myLesson['tag'],
+          "cover" => url($myLesson['cover']),
+          "price" => floatval($myLesson['price']),
+          "net" => floatval($myLesson['net']),
+        );
+      }
+      $myData=array(
+        "pagination"=>array(
           "page"  => intVal($pageLesson['current_page']),
           "total"   => intVal($pageLesson['total']),
           "perpage" => intVal($pageLesson['per_page']),
           "offset"  => intVal($pageLesson['from']),
         ),
-        "result"=>$pageLesson['data']);
+//        "result"=>$pageLesson,
+        "result"=>$aLesson,
+      );
       $aResult['data']=$myData;
-      $aResult['lessons']=$pageLesson;
+//      $aResult['lessons']=$pageLesson;
     }
     return $this->sendResponse($aResult);
   }
