@@ -27,7 +27,7 @@ class LessonController extends ResponseController {
       'price' => 'required',
       'net' => 'required',
       'cover' => 'required|file|mimes:jpeg,png,jpg,gif|max:5120',
-      'lesson' => 'required|file|mimes:mp4,mpeg|max:51200'
+      'lesson' => 'required|file|mimes:mp4,mpeg|max:524288'
     ]);
 
     if($validator->fails()){
@@ -126,7 +126,7 @@ class LessonController extends ResponseController {
 
   public function show(Request $request,$id=0){
     $return=array("lesson"=>null,"vdo_list"=>null);
-    $lesson=Lesson::findorFail($id);
+    $lesson=Lesson::where('id','=',$id);
     if (! $lesson) {
       return $this->sendError("Failed");
     }
@@ -259,6 +259,9 @@ class LessonController extends ResponseController {
           "cover" => url($myLesson['cover']),
           "price" => floatval($myLesson['price']),
           "net" => floatval($myLesson['net']),
+//          "favorite" => $this->isFavorite($myLesson['id']),
+          "rate" => $this->rating($myLesson['id']),
+          "view" => $this->countView($myLesson['id']),
         );
       }
       $myData=array(
@@ -348,4 +351,33 @@ class LessonController extends ResponseController {
     }
     return $this->sendResponse($aResult);
   }
+
+  protected function isFavorite($id=0) {
+    $valReturn=0;
+    $user=Auth::user();
+    if ($user) {
+      $counter=DB::table('lesson_favorites')
+        ->where('lesson_id','=',$id)
+        ->where('user_id','=',$user->id)
+        ->count();
+      $valReturn=intVal($counter);
+    }
+    return intval($valReturn);
+  }
+
+  protected function rating($id=0) {
+    $counter=DB::table('lesson_rates')
+      ->where('lesson_id','=',$id)
+      ->avg('rate');
+    return intval($counter);
+  }
+
+  protected function countView($id=0) {
+    $counter=0;
+//    $counter=DB::table('lesson_views')
+//      ->where('lesson_id','=',$id)
+//      ->count();
+    return intval($counter);
+  }
+
 }
