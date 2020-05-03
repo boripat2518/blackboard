@@ -31,7 +31,7 @@ class CertificateController extends ResponseController {
           $err_msg.=sprintf("%s",$vals);
         }
       }
-      $aResult=array("status"=>0,"message"=>$err_msg);
+      $aResult=array("status"=>false,"message"=>$err_msg);
       return $this->sendResponse($aResult);
     }
 
@@ -43,7 +43,7 @@ class CertificateController extends ResponseController {
     if ($request->file('cert')) {
       $certFile=$request->file('cert');
       $certSurname=mb_strtolower($certFile->getClientOriginalExtension());
-      $certName=sprintf("%s.%s",date('YmdHis'),$certSurname);
+      $certName=sprintf("cert_%s.%s",date('YmdHis'),$certSurname);
       $destCert=sprintf("%s%s",$destPath,$certName);
       $aReturn['destCert']=$destCert;
 //      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
@@ -60,8 +60,8 @@ class CertificateController extends ResponseController {
         $myCert=Certificate::create($aInsert);
         if (! $myCert) {
           Storage::delete(sprintf("public%s%s",$destPath,$certName));
-          $result=array("status"=>0,"message"=>'Cannot add certificate.');
-          return $this->sendError($result);
+          $result=array("status"=>false,"message"=>'Cannot add certificate.');
+          return $this->sendResponse($result);
         }
       }
     }
@@ -88,6 +88,31 @@ class CertificateController extends ResponseController {
         "status" => $cert->status
       );
     }
+    $aResult['status']=true;
+    return $this->sendResponse($aResult);
+  }
+
+  public function user_list(Request $request,$id=0){
+    $aResult=array("status"=>false,"message"=>null,"code"=>0,"result"=>array());
+    $room = Room::where('id','=',$id)->first();
+    if (! $room) {
+      $aResut['message']="Can not find room.";
+      return $this->sendResponse($aResult);
+    }
+
+    $certs = Certificate::where('room_id','=',$room->id)
+      ->where('active','=',1)
+      ->where('status','=',1)
+      ->orderBy('status','DESC')
+      ->get();
+    foreach($certs as $cert) {
+      $aResult['result'][]=array(
+        "id" => $cert->id,
+        "note" => $cert->note,
+        "status" => $cert->status
+      );
+    }
+    $aResult['status']=true;
     return $this->sendResponse($aResult);
   }
 

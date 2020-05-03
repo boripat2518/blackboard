@@ -40,6 +40,6 @@ Route::group(['middleware' => 'guest:api'], function(){
 
   Route::get('/v1/lesson/{id}', 'Api\v1\LessonController@show')->name('api.lesson.show');
 
-  Route::get('/v1/shop/cert/{id}', 'Api\v1\CertificateController@user_list')->name('api.certificate.room.list');
+  Route::get('/v1/user/shop/cert/{id}', 'Api\v1\CertificateController@user_list')->name('api.user.cert.room.list');
 //  Route::get('/v1/lesson/search', 'Api\v1\LessonController@searchVideo')->name('api.category.video.search');
 });

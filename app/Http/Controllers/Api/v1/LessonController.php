@@ -301,8 +301,6 @@ class LessonController extends ResponseController {
       ->paginate($perpage);
 
     return $this->sendResponse($aResult);
-
-
   }
 
   public function myLesson(Request $request){
