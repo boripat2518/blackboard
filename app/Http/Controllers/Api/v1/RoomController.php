@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Validator;
 use App\User;
 use App\Http\Models\Room;
+use App\Http\Models\Lesson;
 
 class RoomController extends ResponseController {
 
@@ -69,5 +70,43 @@ class RoomController extends ResponseController {
     return $this->sendResponse($result);
   }
 
+  public function profile(Request $request){
+    $aReturn=array("status"=>false,"message"=>"","code"=>0,"result"=>null);
+    $user = Auth::user();
+    $myRoom=Room::where('user_id','=',$user->id)->first();
+
+    if (! $myRoom) {
+      $aReturn["message"]='This user already have thier room.';
+      return $this->sendError($aReturn);
+    }
+    $photo_url=(is_null($user->photo_url))?'stroage/images/avatar.png':$user->photo_url;
+    $myLesson = Lesson::where('room_id','=',$myRoom->id)->get();
+    $aResult=array(
+      "id"=>$myRoom->id,
+      "avatar"=>url($photo_url),
+      "cover"=>url($myRoom->cover),
+      "name"=>$myRoom->name,
+      "favorite"=>$this->count_favorite($myRoom->id),
+      "vote"=>$this->count_vote($myRoom->id),
+      "comment"=>$this->count_comment($myRoom->id)
+    );
+    $aResult["lesson"]=array("total"=>$myLesson->count());
+    $aReturn['status']=true;
+    $aReturn['result']=$aResult;
+
+    return $this->sendResponse($aReturn);
+  }
+
+  public function count_favorite($id=0) {
+    return 0;
+  }
+
+  public function count_vote($id=0) {
+    return 0;
+  }
+
+  public function count_comment($id=0) {
+    return 0;
+  }
 
 }
