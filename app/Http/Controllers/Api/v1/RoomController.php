@@ -70,6 +70,43 @@ class RoomController extends ResponseController {
     return $this->sendResponse($result);
   }
 
+  public function update(Request $request) {
+    $aReturn=array("status"=>false,"message"=>"","code"=>0,"result"=>null);
+    $aInput=$request->all();
+//    $aReturn['debug']=$aInput;
+    $user = Auth::user();
+    $myRoom=Room::where('user_id','=',$user->id)->first();
+
+    if (! $myRoom) {
+      // No found room
+      $aReturn["message"]='This user already have thier room.';
+      return $this->sendError($aReturn);
+    }
+    $destPath='/rooms/'.$myRoom->id.'/';
+    if ($request->file('cover')) {
+      $imgCover=$request->file('cover');
+      $imgSurname=mb_strtolower($imgCover->getClientOriginalExtension());
+      $imgName=sprintf("cover.%s",$imgSurname);
+      $newImageFile=sprintf("public%s%s",$destPath,$imgName);
+      Storage::delete($newImageFile);
+      if ($request->file('cover')->storeAs('public'.$destPath,$imgName)) {
+        $aReturn['message']="Successful.";
+      }
+    }
+    if ($aInput['name'] != $myRoom->name) {
+      $myRoom->name = $aInput['name'];
+    }
+    if ($aInput['detail'] != $myRoom->note) {
+      $myRoom->note = $aInput['detail'];
+    }
+    $myRoom->save();
+
+    $aReturn['message']="Successful.";
+    $aReturn['status']=true;
+    return $this->sendResponse($aReturn);
+  }
+
+
   public function profile(Request $request){
     $aReturn=array("status"=>false,"message"=>"","code"=>0,"result"=>null);
     $user = Auth::user();
@@ -86,6 +123,7 @@ class RoomController extends ResponseController {
       "avatar"=>url($photo_url),
       "cover"=>url($myRoom->cover),
       "name"=>$myRoom->name,
+      "detai"=>$myRoom->note,
       "favorite"=>$this->count_favorite($myRoom->id),
       "vote"=>$this->count_vote($myRoom->id),
       "comment"=>$this->count_comment($myRoom->id)

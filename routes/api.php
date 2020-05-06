@@ -26,7 +26,8 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::get('/v1/shop/cert/list', 'Api\v1\CertificateController@list')->name('api.room.certificate.list');
   Route::post('/v1/shop/cert/create', 'Api\v1\CertificateController@create')->name('api.room.certificate.create');
   Route::post('/v1/shop/cert/{id}/delete', 'Api\v1\CertificateController@delete')->name('api.room.certificate.delete');
-  Route::post('/v1/shop/profile', 'Api\v1\RoomController@profile')->name('api.room.profile');
+  Route::get('/v1/shop/profile', 'Api\v1\RoomController@profile')->name('api.room.profile');
+  Route::post('/v1/shop/update', 'Api\v1\RoomController@update')->name('api.room.update');
 
 //  Route::get('/v1/lesson/category', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
 });
