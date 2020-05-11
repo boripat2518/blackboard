@@ -126,13 +126,15 @@ class LessonController extends ResponseController {
 
   public function show(Request $request,$id=0){
     $return=array("lesson"=>null,"vdo_list"=>null);
-    $lesson=Lesson::where('id','=',$id);
+    $lesson=Lesson::where('id','=',$id)->first();
     if (! $lesson) {
-      return $this->sendError("Failed");
+      $return['message']="No Find Lesson.";
+      return $this->sendError($return);
     }
     $videos=Video::where('lesson_id','=',$id)->get();
-    if (! $videos) {
-      return $this->sendError("Failed");
+    if ($videos->count()==0) {
+      $return['message']="No Video in lesson.";
+      return $this->sendError($return);
     }
     $return['lesson']=array(
       "id" => $lesson->id,
@@ -152,7 +154,6 @@ class LessonController extends ResponseController {
         "url" => url($video->link)
       );
     }
-
     return $this->sendResponse($return);
   }
 

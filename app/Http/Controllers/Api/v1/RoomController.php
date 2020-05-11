@@ -131,6 +131,7 @@ class RoomController extends ResponseController {
     $aResult["lesson"]=array("total"=>$myLesson->count());
     $aReturn['status']=true;
     $aReturn['result']=$aResult;
+    $aReturn['message']="Successful.";
 
     return $this->sendResponse($aReturn);
   }

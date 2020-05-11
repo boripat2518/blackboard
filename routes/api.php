@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 Route::group(['middleware' => 'auth:api'], function(){
 //  Route::get('/user', 'Api\v1\UserController@getUser');
   Route::get('/v1/account/profile', 'Api\v1\UserController@user')->name('api.profile');
+  Route::get('/v1/my/profile', 'Api\v1\UserController@user')->name('api.my.profile');
+  Route::get('/v1/account/update', 'Api\v1\UserController@update')->name('api.profile.update');
 
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
   Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
@@ -29,7 +31,9 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::get('/v1/shop/profile', 'Api\v1\RoomController@profile')->name('api.room.profile');
   Route::post('/v1/shop/update', 'Api\v1\RoomController@update')->name('api.room.update');
 
-//  Route::get('/v1/lesson/category', 'Api\v1\LessonController@searchByCategory')->name('api.category.lesson');
+//  Route::get('/v1/my/wallet', 'Api\v1\WalletController@my_wallet')->name('api.my.wallet');
+//  Route::get('/v1/shop/wallet', 'Api\v1\WalletController@shop_wallet')->name('api.shop.wallet');
+
 });
 
 Route::group(['middleware' => 'guest:api'], function(){
