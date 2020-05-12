@@ -136,6 +136,9 @@ class LessonController extends ResponseController {
       $return['message']="No Video in lesson.";
       return $this->sendError($return);
     }
+    $room=Room::where('id','=',$lesson->room_id)->first();
+    $user=User::where('id','=',$room->user_id)->first();
+
     $return['lesson']=array(
       "id" => $lesson->id,
       "cat_id" => $lesson->cat_id,
@@ -146,7 +149,10 @@ class LessonController extends ResponseController {
       "tag" => $lesson->tag,
       "price" => floatval($lesson->price),
       "net" => floatval($lesson->net),
-      "cover" => url($lesson->cover)
+      "cover" => url($lesson->cover),
+      "rate" => $this->rating($lesson->id),
+      "favorite" => $this->isFavorite($lesson->id),
+      "count" => $this->countView($lesson->id),
     );
     foreach ($videos as $video) {
       $return['vdo_list'][]=array(
@@ -154,6 +160,25 @@ class LessonController extends ResponseController {
         "url" => url($video->link)
       );
     }
+    $avatar=url('storage/images/avatar.jpg');
+    if ($user->provider=='email') {
+      if (! is_null($user->photo_url)) {
+        $avatar=url($user->photo_url);
+      }
+    } else {
+      $avatar=$user->provider_photo;
+    }
+
+    $return['owner']=array(
+      "id" => $user->id,
+      "avatar"=> $avatar,
+      "name" => $user->name,
+      "type" => 1,
+      "rate" => $this->user_rate($user->id),
+      "follower" => $this->follow($lesson->room_id),
+      "ceritfy" => $this->isCertify($room->id),
+
+    );
     return $this->sendResponse($return);
   }
 
@@ -333,17 +358,17 @@ class LessonController extends ResponseController {
       foreach ($lessons as $lesson) {
         $myDatas[]=array(
           "id" => $lesson->id,
-//          "cat_id" => $lesson->cat_id,
-//          "room_id" => $lesson->room_id,
+          "cat_id" => $lesson->cat_id,
+          "room_id" => $lesson->room_id,
           "title" => $lesson->title,
           "type" => $lesson->type,
           "tag" => $lesson->tag,
           "cover" => url($lesson->cover),
           "price" => floatval($lesson->price),
           "net" => floatval($lesson->net),
-//          "rate" => 0,
-//          "favorite" => 0,
-          "count" => 0
+          "rate" => $this->rating($lesson->id),
+          "favorite" => $this->isFavorite($lesson->id),
+          "count" => $this->countView($lesson->id)
         );
       }
       $aResult['data']=$myDatas;
@@ -364,6 +389,15 @@ class LessonController extends ResponseController {
     return intval($valReturn);
   }
 
+  protected function isCertify($id=0) {
+    $valReturn=0;
+    $counter=DB::table('room_types')
+      ->where('room_id','=',$id)
+      ->count();
+    $valReturn=intval($counter);
+    return $valReturn;
+  }
+
   protected function rating($id=0) {
     $counter=DB::table('lesson_rates')
       ->where('lesson_id','=',$id)
@@ -377,6 +411,58 @@ class LessonController extends ResponseController {
 //      ->where('lesson_id','=',$id)
 //      ->count();
     return intval($counter);
+  }
+
+  protected function follow($id=0) {
+    $counter=0;
+//    $counter=DB::table('lesson_views')
+//      ->where('lesson_id','=',$id)
+//      ->count();
+    return intval($counter);
+  }
+
+  protected function user_rate($id=0) {
+    $counter=0;
+//    $counter=DB::table('lesson_views')
+//      ->where('lesson_id','=',$id)
+//      ->count();
+    return intval($counter);
+  }
+
+  public function view(Request $request,$id=0){
+    $return=array("lesson"=>null,"vdo_list"=>null);
+    $lesson=Lesson::where('id','=',$id)->first();
+    if (! $lesson) {
+      $return['message']="No Find Lesson.";
+      return $this->sendError($return);
+    }
+    $videos=Video::where('lesson_id','=',$id)->get();
+    if ($videos->count()==0) {
+      $return['message']="No Video in lesson.";
+      return $this->sendError($return);
+    }
+    $room=Room::where('id','=',$lesson->room_id)->first();
+    $user=User::where('id','=',$room->user_id)->first();
+
+    $return['lesson']=array(
+      "id" => $lesson->id,
+      "cat_id" => $lesson->cat_id,
+      "room_id" => $lesson->room_id,
+      "type" => $lesson->type,
+      "title" => $lesson->title,
+      "desc" => $lesson->note,
+      "tag" => $lesson->tag,
+      "price" => floatval($lesson->price),
+      "net" => floatval($lesson->net),
+      "cover" => url($lesson->cover),
+    );
+    foreach ($videos as $video) {
+      $return['vdo_list'][]=array(
+        "id" => $video->id,
+        "url" => url($video->link)
+      );
+    }
+    return $this->sendResponse($return);
   }
 
 }

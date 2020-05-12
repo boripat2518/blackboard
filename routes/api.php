@@ -21,13 +21,19 @@ Route::group(['middleware' => 'auth:api'], function(){
 
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
   Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
+
+  Route::get('/v1/my/lesson/{id}', 'Api\v1\LessonController@view')->name('api.lesson.my.view');
   Route::get('/v1/my/lesson', 'Api\v1\LessonController@myLesson')->name('api.lesson.my');
+
+  Route::get('/v1/my/lesson/list', 'Api\v1\LessonController@myLesson')->name('api.my.lesson.list');
+  Route::post('/v1/my/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.my.lesson.update');
 
   Route::post('/v1/shop/create', 'Api\v1\RoomController@create')->name('api.room.create');
 
   Route::get('/v1/shop/cert/list', 'Api\v1\CertificateController@list')->name('api.room.certificate.list');
   Route::post('/v1/shop/cert/create', 'Api\v1\CertificateController@create')->name('api.room.certificate.create');
-  Route::post('/v1/shop/cert/{id}/delete', 'Api\v1\CertificateController@delete')->name('api.room.certificate.delete');
+//  Route::post('/v1/shop/cert/{id}/delete', 'Api\v1\CertificateController@delete')->name('api.room.certificate.delete');
+
   Route::get('/v1/shop/profile', 'Api\v1\RoomController@profile')->name('api.room.profile');
   Route::post('/v1/shop/update', 'Api\v1\RoomController@update')->name('api.room.update');
 
