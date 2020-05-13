@@ -19,14 +19,13 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::get('/v1/my/profile', 'Api\v1\UserController@user')->name('api.my.profile');
   Route::get('/v1/account/update', 'Api\v1\UserController@update')->name('api.profile.update');
 
-  Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
-  Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
+//  Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
+//  Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
 
+  Route::post('/v1/my/lesson/create', 'Api\v1\LessonController@create')->name('api.my.lesson.create');
+  Route::post('/v1/my/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.my.lesson.update');
   Route::get('/v1/my/lesson/{id}', 'Api\v1\LessonController@view')->name('api.lesson.my.view');
   Route::get('/v1/my/lesson', 'Api\v1\LessonController@myLesson')->name('api.lesson.my');
-
-  Route::get('/v1/my/lesson/list', 'Api\v1\LessonController@myLesson')->name('api.my.lesson.list');
-  Route::post('/v1/my/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.my.lesson.update');
 
   Route::post('/v1/shop/create', 'Api\v1\RoomController@create')->name('api.room.create');
 
@@ -36,6 +35,8 @@ Route::group(['middleware' => 'auth:api'], function(){
 
   Route::get('/v1/shop/profile', 'Api\v1\RoomController@profile')->name('api.room.profile');
   Route::post('/v1/shop/update', 'Api\v1\RoomController@update')->name('api.room.update');
+
+  Route::get('/v1/my/shop/profile', 'Api\v1\RoomController@profile')->name('api.my.room.profile');
 
 //  Route::get('/v1/my/wallet', 'Api\v1\WalletController@my_wallet')->name('api.my.wallet');
 //  Route::get('/v1/shop/wallet', 'Api\v1\WalletController@shop_wallet')->name('api.shop.wallet');

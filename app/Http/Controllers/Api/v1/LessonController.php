@@ -125,7 +125,7 @@ class LessonController extends ResponseController {
   }
 
   public function show(Request $request,$id=0){
-    $return=array("lesson"=>null,"vdo_list"=>null);
+    $return=array("product"=>null,"vdo_list"=>null);
     $lesson=Lesson::where('id','=',$id)->first();
     if (! $lesson) {
       $return['message']="No Find Lesson.";
@@ -139,7 +139,7 @@ class LessonController extends ResponseController {
     $room=Room::where('id','=',$lesson->room_id)->first();
     $user=User::where('id','=',$room->user_id)->first();
 
-    $return['lesson']=array(
+    $return['product']=array(
       "id" => $lesson->id,
       "cat_id" => $lesson->cat_id,
       "room_id" => $lesson->room_id,
@@ -430,7 +430,7 @@ class LessonController extends ResponseController {
   }
 
   public function view(Request $request,$id=0){
-    $return=array("lesson"=>null,"vdo_list"=>null);
+    $return=array("product"=>null,"vdo_list"=>null);
     $lesson=Lesson::where('id','=',$id)->first();
     if (! $lesson) {
       $return['message']="No Find Lesson.";
@@ -444,7 +444,7 @@ class LessonController extends ResponseController {
     $room=Room::where('id','=',$lesson->room_id)->first();
     $user=User::where('id','=',$room->user_id)->first();
 
-    $return['lesson']=array(
+    $return['product']=array(
       "id" => $lesson->id,
       "cat_id" => $lesson->cat_id,
       "room_id" => $lesson->room_id,
