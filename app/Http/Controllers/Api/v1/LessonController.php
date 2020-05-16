@@ -140,10 +140,10 @@ class LessonController extends ResponseController {
     $user=User::where('id','=',$room->user_id)->first();
 
     $return['product']=array(
-      "id" => $lesson->id,
-      "cat_id" => $lesson->cat_id,
-      "room_id" => $lesson->room_id,
-      "type" => $lesson->type,
+      "id" => intVal($lesson->id),
+      "cat_id" => intVal($lesson->cat_id),
+      "room_id" => intVal($lesson->room_id),
+      "type" => intVal($lesson->type),
       "title" => $lesson->title,
       "desc" => $lesson->note,
       "tag" => $lesson->tag,
@@ -153,6 +153,8 @@ class LessonController extends ResponseController {
       "rate" => $this->rating($lesson->id),
       "favorite" => $this->isFavorite($lesson->id),
       "count" => $this->countView($lesson->id),
+      "purchase" => $this->isPurchase($lesson->id),
+      "status" => intVal($lesson->active),
     );
     foreach ($videos as $video) {
       $return['vdo_list'][]=array(
@@ -422,6 +424,14 @@ class LessonController extends ResponseController {
   }
 
   protected function user_rate($id=0) {
+    $counter=0;
+//    $counter=DB::table('lesson_views')
+//      ->where('lesson_id','=',$id)
+//      ->count();
+    return intval($counter);
+  }
+
+  protected function isPurchase($id=0) {
     $counter=0;
 //    $counter=DB::table('lesson_views')
 //      ->where('lesson_id','=',$id)
