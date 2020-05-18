@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth:api'], function(){
 Route::group(['middleware' => 'guest:api'], function(){
   Route::post('/v1/login', 'Api\v1\UserController@login')->name('api.login');
   Route::post('/v1/register', 'Api\v1\UserController@register')->name('api.register');
+  Route::post('/v1/facebook/register', 'Api\v1\UserController@facebook')->name('api.facebook.register');
 
   Route::get('/v1/home/category', 'Api\v1\CategoryController@all')->name('api.category.list');
 

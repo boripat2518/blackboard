@@ -55,8 +55,7 @@
      *
      * @return \Illuminate\Http\Response
      */
-    public function register(Request $request)
-    {
+    public function register(Request $request) {
       $input = $request->json()->all();
       $user=User::where('email','=',$input['email'])->first();
       if ($user) {
@@ -77,7 +76,7 @@
         "code"=>0,
         "data"=>null,
       );
-      $success['data']['access_token'] =  $user->createToken('EasyGo')->accessToken;
+      $success['data']['access_token'] =  $user->createToken('blackboard')->accessToken;
       $success['data']['token_type'] = "user";
       $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
@@ -117,8 +116,7 @@
       return $this->sendResponse($success);
     }
 
-    public function update(Request $request)
-    {
+    public function update(Request $request) {
       $aReturn=array("status"=>false,"message"=>null);
       $aInput = $request->all();
       $aInput['first_name'] = $aInput['name'];
@@ -132,7 +130,8 @@
                     "email"=>$aUser->email,
                     "phone"=>$aUser->phone,
                     "province"=>$aUser->location,
-                    "image_url"=>($aUser->provider=='email')?$aUser->photo_url:$aUser->provider_photo,
+                    "image_url"=>($aUser->provider=='email')?
+                      $aUser->photo_url:$aUser->provider_photo,
                   );
       $bChange=0;
       if ($aUser->first_name <> $aInput['name']) {
@@ -176,6 +175,38 @@
         return response()->json($aReturn, 401);
       }
 
+    }
+
+    public function facebook(Request $request) {
+      $input = $request->all();
+      $user=User::where('provider','=','facebook')
+        ->where('provider_id','=',$input['facebook'])
+        ->first();
+
+      if (! $user) {
+        if (! ( isset($input['first_name'])
+          && isset($input['last_name'])
+          && isset($input['tel'])
+          && isset($input['name'])
+          )) {
+          return $this->sendError(array("message"=>"No Found User"));
+        }
+        $data['name']=$input['name'];
+        $data['password']=bcrypt($input['name']);
+        $data['first_name']=$input['first_name'];
+        $data['last_name']=$input['last_name'];
+        $data['provider'] = 'facebook';
+        $data['provider_id'] = $input['facebook'];
+        $data['email']  = sprintf("%s@facebook.com",$input['facebook']);
+        $data['provider_photo']=sprintf("https://graph.facebook.com/v3.0/%s/picture?type=normal",$input['facebook']);
+        $data['phone'] = $input['tel'];
+        $user = User::create($data);
+      }
+      $success['access_token'] =  $user->createToken('blackboard')->accessToken;
+      $success['token_type'] = "facebook";
+      $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+//      return response()->json(['success'=>$success], $this-> successStatus);
+      return $this->sendResponse($success);
     }
 
 }
