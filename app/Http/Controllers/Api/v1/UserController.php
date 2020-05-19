@@ -78,7 +78,7 @@
       );
       $success['data']['access_token'] =  $user->createToken('blackboard')->accessToken;
       $success['data']['token_type'] = "user";
-      $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->setTimezone('7:00')->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
       return $this->sendResponse($success);
     }
@@ -211,7 +211,7 @@
       $aReturn['status']=true;
       $aReturn['data']['access_token'] =  $user->createToken('blackboard')->accessToken;
       $aReturn['data']['token_type'] = "facebook";
-      $aReturn['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $aReturn['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->setTimezone('7:00')->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
       return $this->sendResponse($aReturn);
     }
