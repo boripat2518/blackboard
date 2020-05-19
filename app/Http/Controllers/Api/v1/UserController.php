@@ -78,7 +78,7 @@
       );
       $success['data']['access_token'] =  $user->createToken('blackboard')->accessToken;
       $success['data']['token_type'] = "user";
-      $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $success['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->setTimezone('+7:00')->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
       return $this->sendResponse($success);
     }
@@ -179,6 +179,7 @@
 
     public function facebook(Request $request) {
       $input = $request->all();
+      $aReturn=array("status"=>false,"message"=>"","code"=>0,"data"=>null);
       $user=User::where('provider','=','facebook')
         ->where('provider_id','=',$input['facebook'])
         ->first();
@@ -189,7 +190,8 @@
           && isset($input['tel'])
           && isset($input['name'])
           )) {
-          return $this->sendError(array("message"=>"No Found User"));
+            $aReturn['message']='Paramter not completed';
+          return $this->sendResponse($aReturn);
         }
         $data['name']=$input['name'];
         $data['password']=bcrypt($input['name']);
@@ -201,12 +203,17 @@
         $data['provider_photo']=sprintf("https://graph.facebook.com/v3.0/%s/picture?type=normal",$input['facebook']);
         $data['phone'] = $input['tel'];
         $user = User::create($data);
+        if (! $user) {
+          $aReturn['message']="Cannot Register User";
+          return $this->sendResponse($aReturn);
+        }
       }
-      $success['access_token'] =  $user->createToken('blackboard')->accessToken;
-      $success['token_type'] = "facebook";
-      $success['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->format('Y-m-d H:i:s');
+      $aReturn['status']=true;
+      $aReturn['data']['access_token'] =  $user->createToken('blackboard')->accessToken;
+      $aReturn['data']['token_type'] = "facebook";
+      $aReturn['data']['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', $user->created_at)->setTimezone('+7:00')->format('Y-m-d H:i:s');
 //      return response()->json(['success'=>$success], $this-> successStatus);
-      return $this->sendResponse($success);
+      return $this->sendResponse($aReturn);
     }
 
 }
