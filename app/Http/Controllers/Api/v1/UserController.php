@@ -187,7 +187,7 @@
       if (! $user) {
         if (! ( isset($input['first_name'])
           && isset($input['last_name'])
-          && isset($input['tel'])
+//          && isset($input['tel'])
           && isset($input['name'])
           )) {
             $aReturn['message']='Paramter not completed';
@@ -201,7 +201,7 @@
         $data['provider_id'] = $input['facebook'];
         $data['email']  = sprintf("%s@facebook.com",$input['facebook']);
         $data['provider_photo']=sprintf("https://graph.facebook.com/v3.0/%s/picture?type=normal",$input['facebook']);
-        $data['phone'] = $input['tel'];
+//        $data['phone'] = $input['tel'];
         $user = User::create($data);
         if (! $user) {
           $aReturn['message']="Cannot Register User";
