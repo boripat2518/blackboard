@@ -190,7 +190,7 @@
           && isset($input['tel'])
           && isset($input['name'])
           )) {
-            $aReturn['message']=> 'Paramter not completed';
+            $aReturn['message']='Paramter not completed';
           return $this->sendResponse($aReturn);
         }
         $data['name']=$input['name'];
