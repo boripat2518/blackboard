@@ -19,8 +19,8 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::get('/v1/my/profile', 'Api\v1\UserController@user')->name('api.my.profile');
   Route::get('/v1/account/update', 'Api\v1\UserController@update')->name('api.profile.update');
 
-//  Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
-//  Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
+  Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
+  Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
 
   Route::post('/v1/my/lesson/create', 'Api\v1\LessonController@create')->name('api.my.lesson.create');
   Route::post('/v1/my/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.my.lesson.update');
@@ -38,6 +38,7 @@ Route::group(['middleware' => 'auth:api'], function(){
 
   Route::get('/v1/my/shop/profile', 'Api\v1\RoomController@profile')->name('api.my.room.profile');
 
+  Route::get('/v1/my/wallet/topup', 'Api\v1\MyWalletController@topup')->name('api.my.wallet.topup');
 //  Route::get('/v1/my/wallet', 'Api\v1\WalletController@my_wallet')->name('api.my.wallet');
 //  Route::get('/v1/shop/wallet', 'Api\v1\WalletController@shop_wallet')->name('api.shop.wallet');
 

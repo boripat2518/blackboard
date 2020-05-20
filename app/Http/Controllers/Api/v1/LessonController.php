@@ -12,6 +12,7 @@ use App\Http\Models\Lesson;
 use App\Http\Models\Category;
 use App\Http\Models\Video;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 // use App\Http\Models\v1\Facebook;
 // use App\Http\Models\v1\Location;
 
@@ -155,6 +156,7 @@ class LessonController extends ResponseController {
       "count" => $this->countView($lesson->id),
       "purchase" => $this->isPurchase($lesson->id),
       "status" => intVal($lesson->active),
+      'created' => Carbon::createFromFormat('Y-m-d H:i:s', $lesson->created_at)->format('Y-m-d H:i:s'),
     );
     foreach ($videos as $video) {
       $return['vdo_list'][]=array(
