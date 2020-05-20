@@ -94,8 +94,6 @@ class MyWalletController extends ResponseController {
           $remain = $dUWallet->current - $amount;
         }
       }
-    } else {
-
     }
     return $this->sendResponse($return);
 

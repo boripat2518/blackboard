@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Validator;
 use App\Http\Models\Payment;
+use App\Http\Models\MyWallet;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends ResponseController {
@@ -23,12 +24,20 @@ class PaymentController extends ResponseController {
 
     $aInput=$request->all();
 
+
     $validator=Validator::make($request->all(), [
       'type' => 'required',
       'data' => 'required',
       'payment' => 'required|file|mimes:jpeg,png,jpg,gif|max:5120',
     ]);
 
+    $Wallet=MyWallet::where('user_id','=',$user->id)
+      ->where('type','=',1)
+      ->get();
+    if ($Wallet->count()==0) {
+      $aInsert=array("type"=>1,"user_id"=>$user->id);
+      $Wallet=MyWallet::create($aInsert);
+    }
     $destPath='/payment/'.$user->id.'/';
     if ($request->file('payment')) {
       $paidFile=$request->file('payment');
@@ -43,7 +52,7 @@ class PaymentController extends ResponseController {
         $orgCertFile=sprintf("public%s%s",$destPath,$paidName);
 
         $aInsert=array(
-          'user_id' => $user->id,
+          'wallet_id' => $Wallet->id,
           'type' => 'topup',
           'note'=>sprintf("%s - %s",$aInput['type'],$aInput['data']),
           'amount' => $aInput['amount'],

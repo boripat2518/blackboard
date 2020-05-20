@@ -29,7 +29,7 @@ class Payment extends Model
      * @var array
      */
     protected $fillable = [
-      'user_id','type','note','files','amount','status',
+      'wallet_id','type','note','files','amount','status',
       'created_uid','updated_uid'
     ];
 
