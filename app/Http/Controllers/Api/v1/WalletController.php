@@ -67,7 +67,7 @@ class WalletController extends ResponseController {
     return $this->sendResponse($return);
   }
 
-  public function buy(Request $request){
+  public function lesson_buy(Request $request){
     $aInput=$request->all();
     $user=Auth::user();
     $return = array(
@@ -80,6 +80,7 @@ class WalletController extends ResponseController {
       "amount"      =>0,
       "last_updated"=>date('Y-m-d H:i:s'),
     );
+    // User Wallet
     $dUWallet = MyWallet::where('user_id','=',$user->id)
       ->where('type','=',1)
       ->first();
@@ -91,43 +92,87 @@ class WalletController extends ResponseController {
       );
       $dUWallet=MyWallet::create($aInsert);
     }
-
-    $Lesson = Lesson::where('id','=',$aInput['lesson_id'])->get();
+    // Lesson Info
+    $Lesson = Lesson::where('id','=',$aInput['lesson_id'])->first();
     if (! $Lesson) {
+    // No Found Lesson
       $return['message'].='No Found Lesson';
-    } elseif (! $dUWallet) {
-        $return['message'].='No Wallet Found.';
-    } else {
-      $Discount=$this->Lesson_discount($Lesson->id);
-      $Room = Room::where('id','=',$Lesson->room_id)->get();
-      if (! $Room) {
-        $return['message'].='No Room Found.';
-      } else {
-        $dSWallet = MyWallet::where('user_id','=',$room->user_id)
-          ->where('type','=',2)
-          ->first();
-        if (! $dSWallet) {
-          $aInsert=array(
-            "user_id" => $room->user_id,
-            "type"    => 2,
-            "current" => 0,
-          );
-          $dSWallet=MyWallet::create($aInsert);
-        }
-        if ($dUWallet->current < $Lesson->net) {
-          $return['message'].='No enough coin.';
-        } else {
-          $discount = $this->Lesson_discount($Lesson->id);
-          $amount = round($Lesson->net * $discount,2);
-          $remain = $dUWallet->current - $amount;
-        }
-      }
+      return $this->sendResponse($return);
     }
+    $Room = Room::where('id','=',$Lesson->room_id)->first();
+    if (! $Room) {
+    // No Found Lesson
+      $return['message'].='No Found Room';
+      return $this->sendResponse($return);
+    }
+    // Shop Wallet
+    $dSWallet = MyWallet::where('user_id','=',$Room->user_id)
+      ->where('type','=',2)
+      ->first();
+    if (! $dSWallet) {
+      $aInsert=array(
+        "user_id" => $room->user_id,
+        "type"    => 2,
+        "current" => 0,
+      );
+      $dSWallet=MyWallet::create($aInsert);
+    }
+    // Find % Discount
+    $Discount=$this->Lesson_discount($Lesson->id);
+
+    if ($dUWallet->current < $Lesson->net) {
+      $return['message'].='No enough coin.';
+      return $this->sendResponse($return);
+    }
+
+    $price=$Lesson->net;
+    $rate_discount = $this->Lesson_discount($Lesson->id);
+    $discount=round($price * $rate_discount,2);
+    $amount = round($price - $discount,2);
+
+    // Student Transcation OUT
+    $aUser = array(
+      "wallet_id"=>$dUWallet->id,
+      "current"=>$dUWallet->current,
+      "type"=>"BUY",
+      "note"=>sprintf("buy '%d' transfer '%d' => '%d' with '%0.2f'",
+        $Lesson->id,$dUWallet->id,$dSWallet->id,$price),
+      "files"=>"/storage/payment/system.jpg",
+      "amount"=>$price,
+      "status"=>1,
+    );
+
+    // Shop Transcation IN
+    $aShop = array(
+      "wallet_id"=>$dSWallet->id,
+      "current"=>$dSWallet->current,
+      "type"=>"TRANSFER",
+      "note"=>sprintf("buy '%d' transfer '%d' => '%d' with '%0.2f'",
+        $Lesson->id,$dUWallet->id,$dSWallet->id,$amount),
+      "files"=>"/storage/payment/system.jpg",
+      "amount"=>$amount,
+      "status"=>1,
+    );
+
+    // CENTER Transcation IN
+    $aCenter = array(
+      "wallet_id"=>99,
+      "current"=>$dSWallet->current,
+      "type"=>"BANK",
+      "note"=>sprintf("buy '%d' transfer '%d' => '%d' with '%0.2f'",
+        $Lesson->id,$dUWallet->id,$dSWallet->id,$amount),
+      "files"=>"/storage/payment/system.jpg",
+      "amount"=>$discount,
+      "status"=>1,
+    );
+
+    $Logs = LogWallet::create($aInsert);
+
     return $this->sendResponse($return);
 
   }
 
-  public function Lesson_discount($id=0) {
+  public function Lesson_discount($id=0,$coupon=0) {
     $discount=20;
     $Lesson = Lesson::findorFail($id);
     $dtNow = Carbon::now();
@@ -138,11 +183,10 @@ class WalletController extends ResponseController {
       $discount=50;
     } elseif ($Lesson->created_at < $TwoYear) {
       $discount=30;
-    } elseif ($Lesson->created_at > $OneYear) {
+    } elseif ($Lesson->created_at < $OneYear) {
       $discount=25;
     } else {
       $discount=20;
-
     }
     return floatVal($discount/100);
   }
