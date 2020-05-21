@@ -33,11 +33,12 @@ class PaymentController extends ResponseController {
 
     $Wallet=MyWallet::where('user_id','=',$user->id)
       ->where('type','=',1)
-      ->get();
+      ->first();
     if ($Wallet->count()==0) {
       $aInsert=array("type"=>1,"user_id"=>$user->id);
       $Wallet=MyWallet::create($aInsert);
     }
+//    return $this->sendResponse($Wallet);
     $destPath='/payment/'.$user->id.'/';
     if ($request->file('payment')) {
       $paidFile=$request->file('payment');
