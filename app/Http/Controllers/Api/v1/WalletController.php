@@ -9,7 +9,7 @@ use App\Http\Models\Lesson;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-class MyWalletController extends ResponseController {
+class WalletController extends ResponseController {
 
   public function wallet(Request $request){
     $user=Auth::user();
@@ -19,15 +19,16 @@ class MyWalletController extends ResponseController {
       "code"    => 0,
       "data"    => null,
     );
+    date_default_timezone_set('Asia/Bangkok');
     $aData=array(
-      "amount"      =>0,
-      "last_updated"=>date('Y-m-d H:i:s'),
+      "amount"      => 0,
+      "last_updated"=> date('Y-m-d H:i:s',"+7"),
     );
     $dData = MyWallet::where('user_id','=',$user->id)
       ->where('type','=',1)
       ->first();
     if ($dData) {
-      $return['status']=true;
+      $return['status'] = true;
       $aData=array(
         "amount"        => floatVal($dData->current),
         "last_updated"  => Carbon::createFromFormat('Y-m-d H:i:s', $dData->updated_at)->format('Y-m-d H:i:s'),
@@ -36,7 +37,34 @@ class MyWalletController extends ResponseController {
     }
     $return['data'] = $aData;
     return $this->sendResponse($return);
+  }
 
+  public function shop_wallet(Request $request){
+    $user=Auth::user();
+    $return = array(
+      "status"  => false,
+      "message" => "",
+      "code"    => 0,
+      "data"    => null,
+    );
+    date_default_timezone_set('Asia/Bangkok');
+    $aData=array(
+      "amount"      => 0,
+      "last_updated"=> date('Y-m-d H:i:s'),
+    );
+    $dData = MyWallet::where('user_id','=',$user->id)
+      ->where('type','=',2)
+      ->first();
+    if ($dData) {
+      $return['status'] = true;
+      $aData=array(
+        "amount"        => floatVal($dData->current),
+        "last_updated"  => Carbon::createFromFormat('Y-m-d H:i:s', $dData->updated_at)->format('Y-m-d H:i:s'),
+      );
+
+    }
+    $return['data'] = $aData;
+    return $this->sendResponse($return);
   }
 
   public function buy(Request $request){
