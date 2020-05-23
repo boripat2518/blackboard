@@ -34,7 +34,7 @@ class PaymentController extends ResponseController {
     $Wallet=MyWallet::where('user_id','=',$user->id)
       ->where('type','=',1)
       ->first();
-    if ($Wallet->count()==0) {
+    if ($Wallet === null) {
       $aInsert=array("type"=>1,"user_id"=>$user->id);
       $Wallet=MyWallet::create($aInsert);
     }
@@ -62,7 +62,7 @@ class PaymentController extends ResponseController {
           'updated_uid' => 99,
         );
         $myWIP=Payment::create($aInsert);
-        if (! $myWIP) {
+        if ($myWIP === null) {
           Storage::delete(sprintf("public%s%s",$destPath,$certName));
           $return=array("status"=>false,"message"=>'Cannot add certificate.');
           return $this->sendResponse($return);
