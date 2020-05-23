@@ -11,6 +11,25 @@ use Carbon\Carbon;
 
 class WalletController extends ResponseController {
 
+  public function Lesson_discount($id=0,$coupon=0) {
+    $discount=20;
+    $Lesson = Lesson::findorFail($id);
+    $dtNow = Carbon::now();
+    $OneYear = Carbon::now()->subYear(1);
+    $TwoYear = Carbon::now()->subYear(2);
+    $ThreeYear = Carbon::now()->subYear(3);
+    if ($Lesson->created_at < $ThreeYear) {
+      $discount=50;
+    } elseif ($Lesson->created_at < $TwoYear) {
+      $discount=30;
+    } elseif ($Lesson->created_at < $OneYear) {
+      $discount=25;
+    } else {
+      $discount=20;
+    }
+    return floatVal($discount/100);
+  }
+
   public function wallet(Request $request){
     $user=Auth::user();
     $return = array(
@@ -131,7 +150,7 @@ class WalletController extends ResponseController {
     $amount = round($price - $discount,2);
 
     // Student Transcation OUT
-    $aUser = array(
+    $aStudent = array(
       "wallet_id"=>$dUWallet->id,
       "current"=>$dUWallet->current,
       "type"=>"BUY",
@@ -143,7 +162,7 @@ class WalletController extends ResponseController {
     );
 
     // Shop Transcation IN
-    $aShop = array(
+    $aTeacher = array(
       "wallet_id"=>$dSWallet->id,
       "current"=>$dSWallet->current,
       "type"=>"TRANSFER",
@@ -166,28 +185,66 @@ class WalletController extends ResponseController {
       "status"=>1,
     );
 
-    $Logs = LogWallet::create($aInsert);
+
+    $logStudent = LogWallet::create($aStudent);
+    if ($logStudent) {
+      $this->wallet_decrease($dUWallet->id,$price);
+    }
+    $logTeacher = LogWallet::create($Teacher);
+    if ($logTeacher) {
+      $this->wallet_decrease($dSWallet->id,$amount);
+    }
+    $logCenter = LogWallet::create($aCenter);
+    if ($logCenter) {
+      $this->wallet_decrease($this->center,$discount);
+    }
 
     return $this->sendResponse($return);
-
   }
 
-  public function Lesson_discount($id=0,$coupon=0) {
-    $discount=20;
-    $Lesson = Lesson::findorFail($id);
-    $dtNow = Carbon::now();
-    $OneYear = Carbon::now()->subYear(1);
-    $TwoYear = Carbon::now()->subYear(2);
-    $ThreeYear = Carbon::now()->subYear(3);
-    if ($Lesson->created_at < $ThreeYear) {
-      $discount=50;
-    } elseif ($Lesson->created_at < $TwoYear) {
-      $discount=30;
-    } elseif ($Lesson->created_at < $OneYear) {
-      $discount=25;
-    } else {
-      $discount=20;
-    }
-    return floatVal($discount/100);
+  public function adjust(Request $Request) {
+    $return=array();
+    $aInput=$Request->all();
+    $result=$this->wallet_adjust($aInput['wallet_id'],$aInput['amount']);
+    $return=array("input"=>$aInput,"result"=>$result);
+    return $this->sendResponse($return);
   }
+
+  public function increase(Request $Request) {
+    $return=array();
+    $aInput=$Request->all();
+    $result=$this->wallet_increase($aInput['wallet_id'],$aInput['amount']);
+    $return=array("input"=>$aInput,"result"=>$result);
+    return $this->sendResponse($return);
+  }
+
+  public function decrease(Request $Request) {
+    $return=array();
+    $aInput=$Request->all();
+    $result=$this->wallet_decrease($aInput['wallet_id'],$aInput['amount']);
+    $return=array("input"=>$aInput,"result"=>$result);
+    return $this->sendResponse($return);
+  }
+
+  private function wallet_adjust($id=0,$amount=0) {
+    $myWallet=MyWallet::find($id);
+    if ($myWallet === null ) return false;
+    $myWallet->current = $amount;
+    return $myWallet->save();
+  }
+
+  private function wallet_increase($id=0,$amount=0) {
+    $myWallet=MyWallet::find($id);
+    if ($myWallet === null ) return false;
+    $myWallet->current += $amount;
+    return $myWallet->save();
+  }
+
+  private function wallet_decrease($id=0,$amount=0) {
+    $myWallet=MyWallet::find($id);
+    if ($myWallet === null ) return false;
+    $myWallet->current -= $amount;
+    return $myWallet->save();
+  }
+
 }
