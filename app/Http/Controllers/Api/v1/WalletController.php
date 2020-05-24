@@ -9,6 +9,7 @@ use App\Http\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Models\Lesson;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class WalletController extends ResponseController {
   private $system_wallet=99;
@@ -204,18 +205,48 @@ class WalletController extends ResponseController {
 
     $logStudent = LogWallet::create($aStudent);
     if ($logStudent) {
-      $this->wallet_decrease($dUWallet->id,$price);
+      if (! $this->wallet_decrease($dUWallet->id,$price)) {
+        $return['message'] = "Not enough coin.";
+        return $this->sendResponse($return);
+      }
     }
+
     $logTeacher = LogWallet::create($aTeacher);
     if ($logTeacher) {
-      $this->wallet_increase($dSWallet->id,$amount);
+      if (! $this->wallet_increase($dSWallet->id,$amount)) {
+        $return['message'] = "Cannot add coin to teacher";
+        if (! $this->wallet_increase($dUWallet->id,$price)) {
+          $return['message'] = "Cannot return coin.";
+          return $this->sendResponse($return);
+        }
+        return $this->sendResponse($return);
+      }
     }
     $logCenter = LogWallet::create($aCenter);
     if ($logCenter) {
-      $this->wallet_increase($this->system_wallet,$discount);
+      if (! $this->wallet_increase($this->system_wallet,$discount)) {
+        $return['message'] = "Cannot add discount to center account";
+        if (! $this->wallet_decrease($dSWallet->id,$amount)) {
+          $return['message'] = "Cannot return coin from teacher";
+          return $this->sendResponse($return);
+        }
+        if (! $this->wallet_increase($dUWallet->id,$price)) {
+          $return['message'] = "Cannot return coin to student";
+          return $this->sendResponse($return);
+        }
+        return $this->sendResponse($return);
+      }
+    }
+    $insert=DB::table('lesson_purchases')->insert(
+      ['lesson_id' => $Lesson->id,'user_id'=>$user->id]
+    );
+    if ($insert === null) {
+      $return['message'] = "Cannot add purchase lesson '".$Lesson->id."'";
+      return $this->sendResponse($return);
     }
 
     $return['status']=true;
+    $return['message']="successful.";
     return $this->sendResponse($return);
   }
 
