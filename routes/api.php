@@ -38,7 +38,7 @@ Route::group(['middleware' => 'auth:api'], function(){
 
   Route::get('/v1/my/shop/profile', 'Api\v1\RoomController@profile')->name('api.my.room.profile');
 
-//  Route::get('/v1/my/wallet/topup', 'Api\v1\MyWalletController@topup')->name('api.my.wallet.topup');
+  Route::post('/v1/my/wallet/buy', 'Api\v1\WalletController@buy')->name('api.my.wallet.buy');
   Route::post('/v1/my/wallet/topup', 'Api\v1\PaymentController@topup')->name('api.my.wallet');
   Route::get('/v1/my/wallet', 'Api\v1\WalletController@wallet')->name('api.my.wallet');
 //  Route::get('/v1/my/wallet/buy', 'Api\v1\MyWalletController@buy')->name('api.my.wallet');

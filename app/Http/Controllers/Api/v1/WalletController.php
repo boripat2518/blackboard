@@ -5,11 +5,14 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController as ResponseController;
 use App\Http\Models\MyWallet;
 use App\Http\Models\LogWallet;
-use App\Http\Models\Lesson;
+use App\Http\Models\Room;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Models\Lesson;
 use Carbon\Carbon;
 
 class WalletController extends ResponseController {
+  private $system_wallet=99;
+  private $system_user=99;
 
   public function Lesson_discount($id=0,$coupon=0) {
     $discount=20;
@@ -86,7 +89,7 @@ class WalletController extends ResponseController {
     return $this->sendResponse($return);
   }
 
-  public function lesson_buy(Request $request){
+  public function buy(Request $request){
     $aInput=$request->all();
     $user=Auth::user();
     $return = array(
@@ -130,14 +133,22 @@ class WalletController extends ResponseController {
       ->first();
     if (! $dSWallet) {
       $aInsert=array(
-        "user_id" => $room->user_id,
+        "user_id" => $Room->user_id,
         "type"    => 2,
         "current" => 0,
       );
       $dSWallet=MyWallet::create($aInsert);
     }
+    if ($dSWallet->user_id == $dUWallet->user_id) {
+      $return['message'].='Cannot buy your own lesson.';
+      return $this->sendResponse($return);
+    }
     // Find % Discount
     $Discount=$this->Lesson_discount($Lesson->id);
+
+    $return['debug']['lesson']=$Lesson;
+    $return['debug']['wallet']['student']=$dUWallet;
+    $return['debug']['wallet']['teacher']=$dSWallet;
 
     if ($dUWallet->current < $Lesson->net) {
       $return['message'].='No enough coin.';
@@ -158,6 +169,7 @@ class WalletController extends ResponseController {
         $Lesson->id,$dUWallet->id,$dSWallet->id,$price),
       "files"=>"/storage/payment/system.jpg",
       "amount"=>$price,
+      "created_uid"=>$this->system_user,
       "status"=>1,
     );
 
@@ -170,6 +182,7 @@ class WalletController extends ResponseController {
         $Lesson->id,$dUWallet->id,$dSWallet->id,$amount),
       "files"=>"/storage/payment/system.jpg",
       "amount"=>$amount,
+      "created_uid"=>$this->system_user,
       "status"=>1,
     );
 
@@ -177,28 +190,32 @@ class WalletController extends ResponseController {
     $aCenter = array(
       "wallet_id"=>99,
       "current"=>$dSWallet->current,
-      "type"=>"BANK",
+      "type"=>"INCOME",
       "note"=>sprintf("buy '%d' transfer '%d' => '%d' with '%0.2f'",
-        $Lesson->id,$dUWallet->id,$dSWallet->id,$amount),
+        $Lesson->id,$dUWallet->id,$this->system_wallet,$discount),
       "files"=>"/storage/payment/system.jpg",
       "amount"=>$discount,
+      "created_uid"=>$this->system_user,
       "status"=>1,
     );
-
+    $return['debug']['wallet_log']['student']=$aStudent;
+    $return['debug']['wallet_log']['teacher']=$aTeacher;
+    $return['debug']['wallet_log']['center']=$aCenter;
 
     $logStudent = LogWallet::create($aStudent);
     if ($logStudent) {
       $this->wallet_decrease($dUWallet->id,$price);
     }
-    $logTeacher = LogWallet::create($Teacher);
+    $logTeacher = LogWallet::create($aTeacher);
     if ($logTeacher) {
-      $this->wallet_decrease($dSWallet->id,$amount);
+      $this->wallet_increase($dSWallet->id,$amount);
     }
     $logCenter = LogWallet::create($aCenter);
     if ($logCenter) {
-      $this->wallet_decrease($this->center,$discount);
+      $this->wallet_increase($this->system_wallet,$discount);
     }
 
+    $return['status']=true;
     return $this->sendResponse($return);
   }
 
