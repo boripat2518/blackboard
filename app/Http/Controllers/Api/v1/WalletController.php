@@ -90,6 +90,15 @@ class WalletController extends ResponseController {
     return $this->sendResponse($return);
   }
 
+  private function isBuy($lesson_id=0,$uid=0) {
+    $user=Auth::user();
+    $return=DB::table('lesson_purchases')
+      ->where('lesson_id','=',$lesson_id)
+      ->where('user_id','=',$uid)
+      ->count();
+    return $return;
+  }
+
   public function buy(Request $request){
     $aInput=$request->all();
     $user=Auth::user();
@@ -99,6 +108,12 @@ class WalletController extends ResponseController {
       "code"    => 0,
       "data"    => null,
     );
+
+    if ($this->isBuy($aInput['lesson_id'],$user->id) == 1) {
+      $return['message'].='Already Buy';
+      return $this->sendResponse($return);
+    }
+
     $aData=array(
       "amount"      =>0,
       "last_updated"=>date('Y-m-d H:i:s'),
@@ -203,10 +218,12 @@ class WalletController extends ResponseController {
     $return['debug']['wallet_log']['teacher']=$aTeacher;
     $return['debug']['wallet_log']['center']=$aCenter;
 
+    DB::beginTransaction();
     $logStudent = LogWallet::create($aStudent);
     if ($logStudent) {
       if (! $this->wallet_decrease($dUWallet->id,$price)) {
-        $return['message'] = "Not enough coin.";
+        $return['message'] = "Cannot remove coin.";
+        DB::rollback();
         return $this->sendResponse($return);
       }
     }
@@ -215,10 +232,7 @@ class WalletController extends ResponseController {
     if ($logTeacher) {
       if (! $this->wallet_increase($dSWallet->id,$amount)) {
         $return['message'] = "Cannot add coin to teacher";
-        if (! $this->wallet_increase($dUWallet->id,$price)) {
-          $return['message'] = "Cannot return coin.";
-          return $this->sendResponse($return);
-        }
+        DB::rollback();
         return $this->sendResponse($return);
       }
     }
@@ -226,14 +240,7 @@ class WalletController extends ResponseController {
     if ($logCenter) {
       if (! $this->wallet_increase($this->system_wallet,$discount)) {
         $return['message'] = "Cannot add discount to center account";
-        if (! $this->wallet_decrease($dSWallet->id,$amount)) {
-          $return['message'] = "Cannot return coin from teacher";
-          return $this->sendResponse($return);
-        }
-        if (! $this->wallet_increase($dUWallet->id,$price)) {
-          $return['message'] = "Cannot return coin to student";
-          return $this->sendResponse($return);
-        }
+        DB::rollback();
         return $this->sendResponse($return);
       }
     }
@@ -242,9 +249,11 @@ class WalletController extends ResponseController {
     );
     if ($insert === null) {
       $return['message'] = "Cannot add purchase lesson '".$Lesson->id."'";
+      DB::rollback();
       return $this->sendResponse($return);
     }
-
+    DB::commit();
+    unset($return['debug']);
     $return['status']=true;
     $return['message']="successful.";
     return $this->sendResponse($return);
