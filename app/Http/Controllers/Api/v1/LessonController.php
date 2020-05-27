@@ -28,7 +28,7 @@ class LessonController extends ResponseController {
       'price' => 'required',
       'net' => 'required',
       'cover' => 'required|file|mimes:jpeg,png,jpg,gif|max:5120',
-      'lesson' => 'required|file|mimes:mp4,mpeg|max:524288'
+      'lesson' => 'required|file|mimes:mp4,mpeg,mov|max:524288000'
     ]);
 
     if($validator->fails()){
