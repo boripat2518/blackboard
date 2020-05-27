@@ -304,4 +304,30 @@ class WalletController extends ResponseController {
     return $myWallet->save();
   }
 
+  public function transfer(Request $Request) {
+    $aInput=$request->all();
+    $user=Auth::user();
+    $return = array(
+      "status"  => false,
+      "message" => "",
+      "code"    => 0,
+      "data"    => null,
+    );
+    $dTeacher = MyWallet::where('user_id','=',$user->id)
+      ->where('type','=',2)
+      ->first();
+    $dStudent = MyWallet::where('user_id','=',$user->id)
+      ->where('type','=',1)
+      ->first();
+    // if not enough wallet
+    // display alert
+    // create  teacher wallet changed
+    // teacher wallet decrease
+    // create student wallet change
+    // student wallet increase
+    // finish
+
+    return $this->sendResponse($return);
+  }
+
 }
