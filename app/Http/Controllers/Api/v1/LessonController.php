@@ -434,11 +434,16 @@ class LessonController extends ResponseController {
   }
 
   protected function isPurchase($id=0) {
-    $counter=0;
-//    $counter=DB::table('lesson_views')
-//      ->where('lesson_id','=',$id)
-//      ->count();
-    return intval($counter);
+    $valReturn=0;
+    $user=Auth::user();
+    if ($user) {
+      $counter=DB::table('lesson_purchases')
+        ->where('lesson_id','=',$id)
+        ->where('user_id','=',$user->id)
+        ->count();
+      $valReturn=intVal($counter);
+    }
+    return intval($valReturn);
   }
 
   public function view(Request $request,$id=0){
@@ -475,6 +480,48 @@ class LessonController extends ResponseController {
       );
     }
     return $this->sendResponse($return);
+  }
+
+  public function my_purchase(Request $request) {
+    $user=Auth::user();
+    $aResult=array(
+      "status"  => true,
+      "message" => null,
+      "code"    => 0,
+      "data"    => null
+    );
+    $Lessons=DB::table('lesson_purchases')
+      ->select('lesson_infos.*',
+        'lesson_purchases.created_at as pdate',
+        'room_infos.user_id as owner_id',
+        'users.name as owner_name')
+      ->join('lesson_infos','lesson_infos.id','=','lesson_purchases.lesson_id')
+      ->join('room_infos','room_infos.id','=','lesson_infos.room_id')
+      ->join('users','users.id','=','room_infos.user_id')
+      ->where('lesson_purchases.user_id','=',$user->id)
+      ->orderBy('lesson_purchases.created_at','DESC')
+      ->get();
+    if ($Lessons === null) {
+      $aResult['message']="No record found.";
+    } else {
+      $aResult['message']="Successful.";
+      $aResult['data']=array();
+      foreach ($Lessons as $Lesson) {
+        $aResult['data'][]=array(
+          "id"=>$Lesson->id,
+          "title" => $Lesson->title,
+          "desc"  => $Lesson->note,
+          "tag"   => $Lesson->tag,
+          "cover" => url($Lesson->cover),
+          "pdate" => $Lesson->pdate,
+          "owner" => array(
+            "id" => $Lesson->owner_id,
+            "name" => $Lesson->owner_name,
+          ),
+        );
+      }
+    }
+    return $this->sendResponse($aResult);
   }
 
 }

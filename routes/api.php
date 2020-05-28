@@ -22,6 +22,7 @@ Route::group(['middleware' => 'auth:api'], function(){
   Route::post('/v1/lesson/create', 'Api\v1\LessonController@create')->name('api.lesson.create');
   Route::post('/v1/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.lesson.update');
 
+  Route::get('/v1/my/lesson/purchase', 'Api\v1\LessonController@my_purchase')->name('api.lesson.my.purchase');
   Route::post('/v1/my/lesson/create', 'Api\v1\LessonController@create')->name('api.my.lesson.create');
   Route::post('/v1/my/lesson/{id}/update', 'Api\v1\LessonController@update')->name('api.my.lesson.update');
   Route::get('/v1/my/lesson/{id}', 'Api\v1\LessonController@view')->name('api.lesson.my.view');
