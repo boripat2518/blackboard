@@ -91,6 +91,7 @@ class RoomController extends ResponseController {
       Storage::delete($newImageFile);
       if ($request->file('cover')->storeAs('public'.$destPath,$imgName)) {
         $aReturn['message']="Successful.";
+        $myRoom->cover=sprintf("storage%s%s",$destPath,$imgName);
       }
     }
     if ($aInput['name'] != $myRoom->name) {
