@@ -27,7 +27,7 @@ class LessonController extends ResponseController {
       'type' => 'required',
       'price' => 'required',
       'net' => 'required',
-      'cover' => 'required|file|mimes:jpeg,png,jpg,gif|max:5120',
+      'cover' => 'required|file|mimes:jpeg,png,jpg,gif,svg|max:5120',
       'lesson' => 'required|file|mimes:mp4,mpeg,quicktime|max:524288000'
     ]);
 
@@ -189,6 +189,7 @@ class LessonController extends ResponseController {
   public function update(Request $request,$id=0){
     $aInput=$request->all();
     $myLesson=Lesson::findorFail($id);
+    $return=array("result"=>1,"message"=>"Successful.");
 
     $validator=Validator::make($request->all(), [
       'name' => 'required',
@@ -196,7 +197,7 @@ class LessonController extends ResponseController {
       'type' => 'required',
       'price' => 'required',
       'net' => 'required',
-      'cover' => 'file|mimes:jpeg,png,jpg,gif|max:5120',
+      'cover' => 'file|mimes:jpeg,png,jpg,gif,svg|max:5120',
       'lesson' => 'file|mimes:mp4,mpeg,quicktime|max:524288000'
     ]);
 
@@ -223,7 +224,13 @@ class LessonController extends ResponseController {
       $destLesson=sprintf("%s%s",$destPath,$imgName);
 //      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
       if ($request->file('lesson')->storeAs('public'.$destPath,$vdoName)) {
-        $myLesson->lesson=sprintf("storage%s%s",$destPath,$vdoName);
+        $myVideo = DB::table('lesson_videos')
+          ->where('lesson_id','=',$id)->first();
+          $return['video_old']=$myVideo->link;
+          unlink($myVideo->link);
+          $myVideo = DB::table('lesson_videos')
+            ->where('lesson_id','=',$id)
+            ->update(['link'=>sprintf("storage%s%s",$destPath,$vdoName)]);
       }
     }
     if ($myLesson->title != $aInput['name']) $myLesson->title = $aInput['name'];
@@ -236,7 +243,6 @@ class LessonController extends ResponseController {
 
     $myLesson->save();
 
-    $return=array("result"=>1,"message"=>"Successful.");
     return $this->sendResponse($return);
   }
 
