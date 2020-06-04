@@ -150,7 +150,7 @@ class LessonController extends ResponseController {
       "tag" => $lesson->tag,
       "price" => floatval($lesson->price),
       "net" => floatval($lesson->net),
-      "cover" => url($lesson->cover),
+      "cover" => url($lesson->cover.'?'.date('YmdHis')),
       "rate" => $this->rating($lesson->id),
       "favorite" => $this->isFavorite($lesson->id),
       "count" => $this->countView($lesson->id),
@@ -221,7 +221,7 @@ class LessonController extends ResponseController {
       $vdoLesson=$request->file('lesson');
       $vdoSurname=mb_strtolower($vdoLesson->getClientOriginalExtension());
       $vdoName=sprintf("%s.%s",date('YmdHis'),$vdoSurname);
-      $destLesson=sprintf("%s%s",$destPath,$imgName);
+      $destLesson=sprintf("%s%s",$destPath,$vdoName);
 //      if ($request->file('cover')->storeAs($destPath,$imgCover)) {
       if ($request->file('lesson')->storeAs('public'.$destPath,$vdoName)) {
         $myVideo = DB::table('lesson_videos')
@@ -373,7 +373,7 @@ class LessonController extends ResponseController {
           "title" => $lesson->title,
           "type" => $lesson->type,
           "tag" => $lesson->tag,
-          "cover" => url($lesson->cover),
+          "cover" => url($lesson->cover.'?'.date('YmdHis')),
           "price" => floatval($lesson->price),
           "net" => floatval($lesson->net),
           "rate" => $this->rating($lesson->id),
@@ -477,7 +477,7 @@ class LessonController extends ResponseController {
       "tag" => $lesson->tag,
       "price" => floatval($lesson->price),
       "net" => floatval($lesson->net),
-      "cover" => url($lesson->cover),
+      "cover" => url($lesson->cover.'?'.date('YmdHis')),
     );
     foreach ($videos as $video) {
       $return['vdo_list'][]=array(
